@@ -1,8 +1,8 @@
 "use client"
 import React, { useState } from 'react';
-import UploadForm from '../components/sign/UploadForm';
-import QRDisplay from '../components/sign/QRDisplay';
+import UploadForm from '../../components/sign/UploadForm';
 import { useRouter } from 'next/navigation';
+import QRDisplay from '../../components/sign/QRDisplay';
 
 export default function HomePage() {
   const [qr, setQr] = useState(null);
@@ -84,7 +84,7 @@ export default function HomePage() {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">PDF Signature & QR Generator</h1>
       <UploadForm onUpload={handleUpload} loading={loading} />
       {error && <div className="mt-4 text-red-600 dark:text-red-400 text-center">{error}</div>}
-      <QRDisplay qr={qr} />
+    <QRDisplay qr={qr} />
       {signedPdf && (
         <button
           onClick={handleDownload}
