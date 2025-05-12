@@ -16,7 +16,7 @@ export default function Hero() {
             </p>
             <div className="mt-10 flex flex-col space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0">
               <Link
-                href="/register"
+                href="/sign"
                 className="rounded-md bg-gradient-to-r from-gray-800 to-gray-900 px-8 py-3 text-center text-base font-medium text-white shadow-sm hover:from-gray-700 hover:to-gray-800"
               >
                 Mulai Sekarang
