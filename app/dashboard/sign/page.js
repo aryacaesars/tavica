@@ -80,26 +80,27 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center py-12 px-4">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">PDF Signature & QR Generator</h1>
-      <UploadForm onUpload={handleUpload} loading={loading} />
-      {error && <div className="mt-4 text-red-600 dark:text-red-400 text-center">{error}</div>}
-    <QRDisplay qr={qr} />
-      {signedPdf && (
-        <button
-          onClick={handleDownload}
-          className="mt-4 py-2 px-4 rounded bg-green-600 text-white font-bold hover:bg-green-700 transition"
-        >
-          Download Signed PDF
-        </button>
-      )}
-      {/* Tombol Navigasi ke Halaman Verify */}
-      <button
-        onClick={() => router.push('/verify')}
-        className="mt-4 py-2 px-4 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 transition"
-      >
-        Go to Verify Page
-      </button>
+    <main className="min-h-screen bg-white flex flex-col items-center justify-center py-12 px-4">
+      <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">PDF Signature & QR Generator</h1>
+      <div className="flex flex-col md:flex-row items-stretch justify-center gap-8 w-full max-w-4xl">
+        <div className="flex-1 flex flex-col items-center md:items-end md:justify-center">
+          <div className="w-full max-w-md">
+            <UploadForm onUpload={handleUpload} loading={loading} />
+            {error && <div className="mt-4 text-red-600 text-center">{error}</div>}
+            {signedPdf && (
+              <button
+                onClick={handleDownload}
+                className="mt-4 py-2 px-4 rounded bg-black text-white font-bold hover:bg-gray-900 transition w-full"
+              >
+                Download Signed PDF
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col items-center md:items-start md:justify-center">
+          <QRDisplay qr={qr} />
+        </div>
+      </div>
     </main>
   );
 }

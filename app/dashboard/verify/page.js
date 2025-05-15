@@ -45,19 +45,18 @@ export default function VerifyPage() {
       setLoading(false);
     }
   };
-
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center py-12 px-4">
+    <main className="min-h-screen bg-white flex flex-col items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+        <h1 className="text-3xl font-bold text-black mb-8 text-center">
           Verify Document Signature
         </h1>
         
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md flex flex-col gap-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col gap-4 border border-black">
           <PDFDropzone onFileSelect={handleFileSelect} loading={loading} />
           
           {loading && (
-            <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-300">
+            <div className="flex items-center justify-center gap-2 text-black">
               <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                 <circle 
                   className="opacity-25" 

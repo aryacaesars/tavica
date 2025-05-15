@@ -11,7 +11,7 @@ export default function DashboardPage() {
         {/* Stats Cards */}
         <StatsCards />
         {/* Two Column Layout for Desktop */}
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-1">
           {/* Recent Requests */}
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <RecentRequests />
@@ -20,10 +20,6 @@ export default function DashboardPage() {
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <QueueManagement />
           </div>
-        </div>
-        {/* Notification Center */}
-        <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <NotificationCenter />
         </div>
       </div>
     </main>
