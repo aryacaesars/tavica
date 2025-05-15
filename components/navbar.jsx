@@ -17,8 +17,8 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center justify-center space-x-6 w-full">
-          <div className="flex items-center justify-center space-x-6 w-full">
+        <nav className="hidden md:flex items-center justify-center w-full">
+          <div className="flex items-center justify-center w-full gap-10 ml-20">
             <Link href="#features" className="text-sm font-medium text-gray-700 hover:text-gray-900">
               Fitur
             </Link>
