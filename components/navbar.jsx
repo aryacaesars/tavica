@@ -17,16 +17,18 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link href="#features" className="text-sm font-medium text-gray-700 hover:text-gray-900">
-            Fitur
-          </Link>
-          <Link href="#about" className="text-sm font-medium text-gray-700 hover:text-gray-900">
-            Tentang Kami
-          </Link>
-          <Link href="#contact" className="text-sm font-medium text-gray-700 hover:text-gray-900">
-            Kontak
-          </Link>
+        <nav className="hidden md:flex items-center justify-center space-x-6 w-full">
+          <div className="flex items-center justify-center space-x-6 w-full">
+            <Link href="#features" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+              Fitur
+            </Link>
+            <Link href="#about" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+              Tentang Kami
+            </Link>
+            <Link href="#contact" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+              Kontak
+            </Link>
+          </div>
           <div className="flex items-center space-x-3">
             <Link href="/auth/login" className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
               Login
