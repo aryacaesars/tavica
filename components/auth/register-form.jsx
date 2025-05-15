@@ -3,9 +3,18 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
+
+// Komponen Input sederhana
+function Input({ className = "", ...props }) {
+  return (
+    <input
+      className={`block w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-sm ${className}`}
+      {...props}
+    />
+  )
+}
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -104,7 +113,7 @@ export default function RegisterForm() {
             required
             value={formData.username}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+            className="mt-1"
             placeholder="johndoe"
           />
         </div>
@@ -121,7 +130,7 @@ export default function RegisterForm() {
             required
             value={formData.email}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+            className="mt-1"
             placeholder="you@example.com"
           />
         </div>
@@ -138,7 +147,7 @@ export default function RegisterForm() {
             required
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+            className="mt-1"
           />
         </div>
 
@@ -154,7 +163,7 @@ export default function RegisterForm() {
             required
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+            className="mt-1"
           />
         </div>
 
@@ -180,7 +189,7 @@ export default function RegisterForm() {
       </div>
 
       <div>
-        <Button type="submit" disabled={isLoading} className="w-full bg-gray-800 hover:bg-gray-700 text-white">
+        <Button type="submit" disabled={isLoading} className="w-full bg-black hover:bg-gray-700 text-white">
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -190,6 +199,21 @@ export default function RegisterForm() {
             "Create account"
           )}
         </Button>
+              {/* Divider & Create account */}
+      <div className="my-6 flex items-center gap-4 text-sm text-gray-400">
+        <div className="flex-1 border-t" />
+        <p>Already have an account?</p>
+        <div className="flex-1 border-t" />
+      </div>
+
+      <Button
+        variant="outline"
+        className="w-full"
+        type="button"
+        onClick={() => router.push("/auth/login")}
+      >
+        Sign in instead
+      </Button>
       </div>
     </form>
   )

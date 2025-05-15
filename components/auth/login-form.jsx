@@ -3,9 +3,18 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
+
+// Komponen Input sederhana
+function Input({ className = "", ...props }) {
+  return (
+    <input
+      className={`block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black focus:border-black text-sm ${className}`}
+      {...props}
+    />
+  )
+}
 
 export default function LoginForm() {
   const router = useRouter()
@@ -65,36 +74,43 @@ export default function LoginForm() {
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">{error}</div>
-      )}
 
-      <div className="space-y-4">
+  return (
+    <div className="w-full max-w-md mx-auto mt-16 px-4">
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-black">Welcome back</h1>
+        <p className="text-sm text-gray-500">Sign in to your account to continue</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">{error}</div>
+        )}
+
+        {/* Email */}
         <div>
           <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email address
+            Email *
           </Label>
           <Input
             id="email"
             name="email"
             type="email"
-            autoComplete="email"
-            required
             value={formData.email}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
-            placeholder="you@example.com"
+            placeholder="your@email.com"
+            required
+            className="mt-1"
           />
         </div>
 
+        {/* Password */}
         <div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
+          <div className="flex justify-between items-center">
+            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+              Password *
             </Label>
-            <a href="#" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+            <a href="#" className="text-sm text-gray-700 hover:underline">
               Forgot password?
             </a>
           </div>
@@ -102,39 +118,62 @@ export default function LoginForm() {
             id="password"
             name="password"
             type="password"
-            autoComplete="current-password"
-            required
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+            required
+            className="mt-1"
           />
         </div>
 
-        <div className="flex items-center">
-          <input
-            id="remember-me"
-            name="remember-me"
-            type="checkbox"
-            className="h-4 w-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
-          />
-          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-            Remember me
-          </label>
+        {/* Remember me */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              name="remember-me"
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-gray-500"
+            />
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+              Remember me
+            </label>
+          </div>
         </div>
+
+        {/* Submit Button */}
+        <div>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-black hover:bg-gray-900 text-white"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign in"
+            )}
+          </Button>
+        </div>
+      </form>
+
+      {/* Divider & Create account */}
+      <div className="my-6 flex items-center gap-4 text-sm text-gray-400">
+        <div className="flex-1 border-t" />
+        <p>Don't have an account?</p>
+        <div className="flex-1 border-t" />
       </div>
 
-      <div>
-        <Button type="submit" disabled={isLoading} className="w-full bg-gray-800 hover:bg-gray-700 text-white">
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
-            </>
-          ) : (
-            "Sign in"
-          )}
-        </Button>
-      </div>
-    </form>
-  )
+      <Button
+        variant="outline"
+        className="w-full"
+        type="button"
+        onClick={() => router.push("/auth/register")}
+      >
+         Create an account
+      </Button>
+    </div>
+  );
 }
