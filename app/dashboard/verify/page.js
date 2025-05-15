@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import PDFDropzone from '../../components/verify/PDFDropzone';
-import VerificationResult from '../../components/verify/VerificationResult';
-import { extractQRFromPDF } from '../../lib/pdf-utils';
+import PDFDropzone from '../../../components/verify/PDFDropzone';
+import VerificationResult from '../../../components/verify/VerificationResult';
+import { extractQRFromPDF } from '../../../lib/pdf-utils';
 
 export default function VerifyPage() {
   const [loading, setLoading] = useState(false);

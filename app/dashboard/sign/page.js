@@ -1,8 +1,8 @@
 "use client"
 import React, { useState } from 'react';
-import UploadForm from '../../components/sign/UploadForm';
+import UploadForm from '../../../components/sign/UploadForm';
 import { useRouter } from 'next/navigation';
-import QRDisplay from '../../components/sign/QRDisplay';
+import QRDisplay from '../../../components/sign/QRDisplay';
 
 export default function HomePage() {
   const [qr, setQr] = useState(null);
