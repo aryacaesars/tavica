@@ -95,7 +95,8 @@ export async function POST(request, { params }) {
       data: {
         hash: documentHash,
         signature,
-        filename: `signed-${document.title}.pdf`
+        filename: `signed-${document.title}.pdf`,
+        documentId: document.id
       }
     });
 

@@ -48,7 +48,8 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           hash,
-          filename: document.title
+          filename: document.title,
+          documentId: document.id
         })
       });
       const signData = await signRes.json();

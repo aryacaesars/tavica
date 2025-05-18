@@ -28,17 +28,21 @@ model Document {
   updatedAt    DateTime @updatedAt @map("updated_at")
   verifiedAt   DateTime? @map("verified_at")
 
+  signedDocuments SignedDocument[]
+
   @@map("documents")
 }
 
 model SignedDocument {
-  id         Int      @id @default(autoincrement())
-  hash       String   @unique
-  signature  String
-  filename   String?
-  pdfUrl     String?  @default("")
-  createdAt  DateTime @default(now()) @map("created_at")
-  verifiedAt DateTime? @map("verified_at")
+id         Int      @id @default(autoincrement())
+documentId Int
+document   Document @relation(fields: [documentId], references: [id])
+hash       String   @unique
+signature  String
+filename   String?
+pdfUrl     String?  @default("")
+createdAt  DateTime @default(now()) @map("created_at")
+verifiedAt DateTime? @map("verified_at")
 
   @@map("signed_documents")
 }

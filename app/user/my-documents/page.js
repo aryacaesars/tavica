@@ -164,13 +164,13 @@ export default function MyDocumentsPage() {
                     </TableCell>
                     <TableCell>
                       {doc.verifiedAt && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => downloadPDF(doc.id, doc.filename || `signed-document-${doc.id}.pdf`, doc.hash, doc.signature)}
-                        >
-                          Download PDF
-                        </Button>
+<Button
+  variant="outline"
+  size="sm"
+  onClick={() => downloadPDF(doc.documentId, doc.filename || `signed-document-${doc.documentId}.pdf`, doc.hash, doc.signature)}
+>
+  Download PDF
+</Button>
                       )}
                     </TableCell>
                   </TableRow>

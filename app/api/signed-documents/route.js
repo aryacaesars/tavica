@@ -14,11 +14,10 @@ export async function GET() {
       );
     }
 
-    const signedDocuments = await prisma.signedDocument.findMany({
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+const signedDocuments = await prisma.signedDocument.findMany({
+  orderBy: { createdAt: 'desc' },
+  include: { document: true } // pastikan ada relasi di model Prisma
+});
 
     return NextResponse.json(signedDocuments);
   } catch (error) {

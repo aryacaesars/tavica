@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(request) {
   try {
-    const { hash, filename } = await request.json();
+    const { hash, filename, documentId } = await request.json();
     if (!hash) {
       return NextResponse.json({ error: 'Missing hash' }, { status: 400 });
     }
@@ -26,7 +26,8 @@ export async function POST(request) {
           hash,
           signature,
           filename,
-          verifiedAt: new Date()
+          verifiedAt: new Date(),
+          documentId
         }
       });
     } catch (error) {
@@ -37,7 +38,8 @@ export async function POST(request) {
           data: {
             signature,
             filename,
-            verifiedAt: new Date()
+            verifiedAt: new Date(),
+            documentId
           }
         });
       } else {
