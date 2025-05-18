@@ -28,30 +28,6 @@ export async function GET(req) {
       tanggalLahir: true,
       noWa: true,
       role: true,
-      documents: {
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          status: true,
-          documentType: true,
-          pdfUrl: true,
-          createdAt: true,
-          updatedAt: true,
-          verifiedAt: true
-        }
-      },
-      signedDocuments: {
-        select: {
-          id: true,
-          hash: true,
-          signature: true,
-          filename: true,
-          pdfUrl: true,
-          createdAt: true,
-          verifiedAt: true
-        }
-      }
     }
   });
 
