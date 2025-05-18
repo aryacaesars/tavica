@@ -53,7 +53,7 @@ export default function MyDocumentsPage() {
       }
       
       const data = await response.json();
-      setDocuments(data);
+      setDocuments(Array.isArray(data) ? data : []);
     } catch (error) {
       toast({
         title: "Error",

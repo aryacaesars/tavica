@@ -49,7 +49,7 @@ export default function DocumentsPage() {
     try {
       const response = await fetch('/api/documents');
       const data = await response.json();
-      setDocuments(data);
+      setDocuments(Array.isArray(data.documents) ? data.documents : []);
     } catch (error) {
       toast({
         title: "Error",

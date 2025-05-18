@@ -22,7 +22,7 @@ export default function HomePage() {
       const res = await fetch('/api/documents');
       if (!res.ok) throw new Error('Failed to fetch documents');
       const data = await res.json();
-      setDocuments(data.documents);
+      setDocuments(Array.isArray(data.documents) ? data.documents : []);
     } catch (err) {
       setError(err.message);
     }
