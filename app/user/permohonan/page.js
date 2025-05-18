@@ -12,7 +12,9 @@ const DOC_LABELS = {
   "pengantar-ktp": "Surat Pengantar KTP"
 };
 
-export default function PermohonanSuratPage() {
+import { Suspense } from "react";
+
+function PermohonanSuratPageInner() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const [loading, setLoading] = useState(false);
@@ -137,5 +139,13 @@ export default function PermohonanSuratPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function PermohonanSuratPage() {
+  return (
+    <Suspense fallback={<div>Memuat...</div>}>
+      <PermohonanSuratPageInner />
+    </Suspense>
   );
 }
