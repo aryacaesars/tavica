@@ -10,9 +10,9 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center">
-          <Link href="/" className="text-xl font-bold text-gray-900">
-            Tavica
+        <div className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2 group">
+            <img src="/TAVICA.svg" alt="Tavica Logo" className="h-30 w-30" />
           </Link>
         </div>
 

@@ -17,13 +17,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { useRouter } from "next/navigation";
 
 export default function MyDocumentsPage() {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
   const { data: session, status } = useSession();
   const router = useRouter();
 

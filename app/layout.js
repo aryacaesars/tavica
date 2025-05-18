@@ -5,7 +5,7 @@ export const metadata = {
   title: "Tavica - Permohonan Dokumen Kelurahan Digital",
   description:
     "Platform administrasi kelurahan digital untuk meningkatkan efisiensi dan transparansi pelayanan publik.",
-    generator: 'v0.dev'
+   
 }
 
 export default function RootLayout({ children }) {
