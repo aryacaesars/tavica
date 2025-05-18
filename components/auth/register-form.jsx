@@ -25,6 +25,17 @@ export default function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
+    tanggalLahir: "",
+    nik: "",
+    alamat: "", // legacy, not used anymore
+    dusun: "",
+    rt: "",
+    rw: "",
+    desa: "",
+    kecamatan: "",
+    kabupaten: "",
+    provinsi: "",
+    noWa: "",
   })
 
   const handleChange = (e) => {
@@ -40,8 +51,19 @@ export default function RegisterForm() {
     setError("")
 
     // Validate form
-    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword || !formData.tanggalLahir || !formData.nik || !formData.dusun || !formData.rt || !formData.rw || !formData.desa || !formData.kecamatan || !formData.kabupaten || !formData.provinsi || !formData.noWa) {
       setError("Please fill in all fields")
+      return
+    }
+    // NIK validation
+    if (!/^\d{16}$/.test(formData.nik)) {
+      setError("NIK harus 16 digit angka")
+      return
+    }
+
+    // No WA validation
+    if (!/^\d{10,15}$/.test(formData.noWa)) {
+      setError("No WA harus 10-15 digit angka")
       return
     }
 
@@ -73,24 +95,37 @@ export default function RegisterForm() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // In a real app, you would register with your backend here
-      // const response = await fetch('/api/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
-
-      // if (!response.ok) throw new Error('Registration failed');
-
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          tanggalLahir: formData.tanggalLahir,
+          nik: formData.nik,
+          dusun: formData.dusun,
+          rt: formData.rt,
+          rw: formData.rw,
+          desa: formData.desa,
+          kecamatan: formData.kecamatan,
+          kabupaten: formData.kabupaten,
+          provinsi: formData.provinsi,
+          noWa: formData.noWa,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Registration failed");
+        setIsLoading(false);
+        return;
+      }
       // Success - redirect to login
-      router.push("/login")
+      router.push("/auth/login");
     } catch (err) {
-      setError(err.message || "An error occurred during registration")
+      setError(err.message || "An error occurred during registration");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -101,6 +136,89 @@ export default function RegisterForm() {
       )}
 
       <div className="space-y-4">
+        <div>
+          <Label htmlFor="nik" className="block text-sm font-medium text-gray-700">
+            NIK
+          </Label>
+          <Input
+            id="nik"
+            name="nik"
+            type="text"
+            required
+            value={formData.nik}
+            onChange={handleChange}
+            className="mt-1"
+            maxLength={16}
+            placeholder="16 digit NIK"
+          />
+        </div>
+        <div>
+          <Label htmlFor="tanggalLahir" className="block text-sm font-medium text-gray-700">
+            Tanggal Lahir
+          </Label>
+          <Input
+            id="tanggalLahir"
+            name="tanggalLahir"
+            type="date"
+            required
+            value={formData.tanggalLahir}
+            onChange={handleChange}
+            className="mt-1"
+          />
+        </div>
+        {/* Alamat jalan dihapus, gunakan field detail alamat */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="dusun" className="block text-sm font-medium text-gray-700">Dusun</Label>
+            <Input id="dusun" name="dusun" type="text" required value={formData.dusun} onChange={handleChange} className="mt-1" />
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Label htmlFor="rt" className="block text-sm font-medium text-gray-700">RT</Label>
+              <Input id="rt" name="rt" type="text" required value={formData.rt} onChange={handleChange} className="mt-1" />
+            </div>
+            <div className="flex-1">
+              <Label htmlFor="rw" className="block text-sm font-medium text-gray-700">RW</Label>
+              <Input id="rw" name="rw" type="text" required value={formData.rw} onChange={handleChange} className="mt-1" />
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="desa" className="block text-sm font-medium text-gray-700">Desa</Label>
+            <Input id="desa" name="desa" type="text" required value={formData.desa} onChange={handleChange} className="mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="kecamatan" className="block text-sm font-medium text-gray-700">Kecamatan</Label>
+            <Input id="kecamatan" name="kecamatan" type="text" required value={formData.kecamatan} onChange={handleChange} className="mt-1" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="kabupaten" className="block text-sm font-medium text-gray-700">Kabupaten</Label>
+            <Input id="kabupaten" name="kabupaten" type="text" required value={formData.kabupaten} onChange={handleChange} className="mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="provinsi" className="block text-sm font-medium text-gray-700">Provinsi</Label>
+            <Input id="provinsi" name="provinsi" type="text" required value={formData.provinsi} onChange={handleChange} className="mt-1" />
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="noWa" className="block text-sm font-medium text-gray-700">
+            No WhatsApp
+          </Label>
+          <Input
+            id="noWa"
+            name="noWa"
+            type="text"
+            required
+            value={formData.noWa}
+            onChange={handleChange}
+            className="mt-1"
+            placeholder="08xxxxxxxxxx"
+            maxLength={15}
+          />
+        </div>
         <div>
           <Label htmlFor="username" className="block text-sm font-medium text-gray-700">
             Username

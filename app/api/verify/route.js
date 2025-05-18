@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verify } from '@/lib/ed25519';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request) {
     }
 
     // Check if document exists in database
-    const document = await prisma.document.findUnique({
+    const document = await prisma.signedDocument.findUnique({
       where: { hash }
     });
 
@@ -33,7 +33,7 @@ export async function POST(request) {
 
     // If verification is successful, update the verification timestamp
     if (isValid) {
-      await prisma.document.update({
+      await prisma.signedDocument.update({
         where: { hash },
         data: { verifiedAt: new Date() }
       });

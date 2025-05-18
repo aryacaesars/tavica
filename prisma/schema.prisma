@@ -6,21 +6,74 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Document {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?
+  status       String   @default("pending")
+  documentType String
+  pdfUrl       String
+  userId       Int?
+  userName     String
+  userNik      String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  verifiedAt   DateTime? @map("verified_at")
+
+  @@map("documents")
+}
+
+model SignedDocument {
   id         Int      @id @default(autoincrement())
   hash       String   @unique
   signature  String
   filename   String?
+  pdfUrl     String?  @default("")
   createdAt  DateTime @default(now()) @map("created_at")
   verifiedAt DateTime? @map("verified_at")
 
-  @@map("documents")
+  @@map("signed_documents")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  email        String   @unique
+  password     String
+  role         String   @default("user")
+  createdAt    DateTime @default(now())
+  tanggalLahir DateTime
+  nik          String   @unique
+  dusun        String?
+  rt           String?
+  rw           String?
+  desa         String?
+  kecamatan    String?
+  kabupaten    String?
+  provinsi     String?
+  noWa         String
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  isActive  Boolean  @default(true)
+  token     String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+
+  @@map("admins")
 }

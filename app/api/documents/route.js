@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 // GET /api/documents - Get all documents
 export async function GET() {
@@ -9,38 +9,37 @@ export async function GET() {
         createdAt: 'desc'
       }
     });
-    return NextResponse.json(documents);
+
+    return NextResponse.json({ documents });
   } catch (error) {
-    console.error('Error getting documents:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Error fetching documents:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch documents' },
+      { status: 500 }
+    );
   }
 }
 
-// POST /api/documents - Store a new document hash
+// POST /api/documents - Store a new document request
 export async function POST(request) {
   try {
-    const { hash, signature, filename } = await request.json();
-    
-    if (!hash || !signature) {
-      return NextResponse.json({ error: 'Missing hash or signature' }, { status: 400 });
-    }
-
+    const data = await request.json();
     const document = await prisma.document.create({
       data: {
-        hash,
-        signature,
-        filename
+        title: data.title,
+        description: data.description,
+        documentType: data.documentType,
+        userName: data.userName,
+        userNik: data.userNik,
+        status: 'pending',
+        pdfUrl: data.pdfUrl || ''
       }
     });
-
     return NextResponse.json(document);
   } catch (error) {
-    console.error('Error storing document:', error);
-    if (error.code === 'P2002') {
-      return NextResponse.json({ 
-        error: 'Document with this hash already exists' 
-      }, { status: 409 });
-    }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create document" },
+      { status: 500 }
+    );
   }
 } 

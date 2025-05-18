@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
@@ -53,27 +54,33 @@ export default function LoginForm() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
 
-      // In a real app, you would authenticate with your backend here
-      // const response = await fetch('/api/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
+      if (result?.error) {
+        setError(result.error)
+        return
+      }
 
-      // if (!response.ok) throw new Error('Login failed');
+      // Get the session to check the role
+      const response = await fetch("/api/auth/session")
+      const session = await response.json()
 
-      // Success - redirect to dashboard
-      router.push("/dashboard")
+      // Redirect based on role
+      if (session?.user?.role === "admin") {
+        router.push("/dashboard")
+      } else {
+        router.push("/user")
+      }
     } catch (err) {
       setError(err.message || "An error occurred during login")
     } finally {
       setIsLoading(false)
     }
   }
-
 
   return (
     <div className="w-full max-w-md mx-auto mt-16 px-4">

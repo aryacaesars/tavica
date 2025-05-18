@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sign } from '@/lib/ed25519';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request) {
   try {
@@ -21,21 +21,23 @@ export async function POST(request) {
 
     // Store document in database
     try {
-      const document = await prisma.document.create({
+      const document = await prisma.signedDocument.create({
         data: {
           hash,
           signature,
-          filename
+          filename,
+          verifiedAt: new Date()
         }
       });
     } catch (error) {
       if (error.code === 'P2002') {
         // Document already exists, update it
-        await prisma.document.update({
+        await prisma.signedDocument.update({
           where: { hash },
           data: {
             signature,
-            filename
+            filename,
+            verifiedAt: new Date()
           }
         });
       } else {

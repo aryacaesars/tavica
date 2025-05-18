@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import QRCode from 'qrcode';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request) {
     }
 
     // Get document from database to ensure it exists
-    const document = await prisma.document.findUnique({
+    const document = await prisma.signedDocument.findUnique({
       where: { hash }
     });
 
