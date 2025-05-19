@@ -42,7 +42,8 @@ export async function POST(request) {
       admin: {
         id: admin.id,
         name: admin.name,
-        email: admin.email
+        email: admin.email,
+        role: admin.role // pastikan role dikembalikan
       }
     });
 

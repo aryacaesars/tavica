@@ -71,7 +71,10 @@ model Admin {
   username  String   @unique
   email     String   @unique
   password  String
-  name      String
+  nama      String?
+  jabatan   String?
+  nip       String?
+  noWa      String?
   role      String   @default("admin")
   isActive  Boolean  @default(true)
   token     String?  @unique

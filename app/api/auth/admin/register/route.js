@@ -1,17 +1,31 @@
 import { NextResponse } from "next/server";
+
 import { PrismaClient } from "@prisma/client";
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { verifyAdminToken } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
+
+
 export async function POST(request) {
   try {
-    const { name, email, password } = await request.json();
+    // --- AUTHORIZATION: Only superadmin can create admin ---
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.split(" ")[1];
+    const adminUser = await verifyAdminToken(token);
+    if (!adminUser || adminUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Hanya superadmin yang bisa membuat admin" }, { status: 403 });
+    }
 
-    if (!name || !email || !password) {
+    const { username, email, password, nama, jabatan, nip, noWa } = await request.json();
+    if (!username || !email || !password || !nama || !jabatan || !nip || !noWa) {
       return NextResponse.json(
-        { error: "Name, email and password are required" },
+        { error: "Semua field wajib diisi" },
         { status: 400 }
       );
     }
@@ -20,10 +34,9 @@ export async function POST(request) {
     const existingAdmin = await prisma.admin.findUnique({
       where: { email }
     });
-
     if (existingAdmin) {
       return NextResponse.json(
-        { error: "Admin with this email already exists" },
+        { error: "Admin dengan email ini sudah terdaftar" },
         { status: 400 }
       );
     }
@@ -34,14 +47,19 @@ export async function POST(request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create admin
+    // Create admin (default role: 'admin')
     const admin = await prisma.admin.create({
       data: {
-        name,
+        username,
         email,
         password: hashedPassword,
-        username: email.split('@')[0], // Use email prefix as username
-        isActive: true
+        nama,
+        jabatan,
+        nip,
+        noWa,
+        isActive: true,
+        token: adminToken,
+        role: 'admin' // <--- force role admin, not superadmin
       }
     });
 
@@ -52,8 +70,12 @@ export async function POST(request) {
       adminToken,
       admin: {
         id: admin.id,
-        name: admin.name,
-        email: admin.email
+        nama: admin.nama,
+        jabatan: admin.jabatan,
+        nip: admin.nip,
+        noWa: admin.noWa,
+        email: admin.email,
+        username: admin.username
       }
     });
 
@@ -64,4 +86,4 @@ export async function POST(request) {
       { status: 500 }
     );
   }
-} 
+}

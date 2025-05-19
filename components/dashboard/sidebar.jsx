@@ -7,12 +7,21 @@ import { Home, FileText, Users, Clock, Bell, Settings, LogOut, Menu, X, FileSign
 export default function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  // Ambil role dari localStorage (hanya di client)
+  let role = null;
+  if (typeof window !== 'undefined') {
+    role = localStorage.getItem('admin_role');
+  }
+
   const menuItems = [
     { name: "Dashboard", icon: Home, href: "/dashboard" },
     { name: "Dokumen", icon: FileText, href: "/dashboard/documents" },
+    { name: "User", icon: Users, href: "/dashboard/user" },
     { name: "E-Signature", icon: FileSignature, href: "/dashboard/sign" },
-    { name : "Verifikasi", icon: Clock, href: "/dashboard/verify" },  
-  ]
+    { name : "Verifikasi", icon: Clock, href: "/dashboard/verify" },
+    // Show Create Admin for all admin (superadmin or admin)
+    { name: "Create Admin", icon: Settings, href: "/dashboard/create-admin" },
+  ];
 
   return (
     <>
@@ -49,13 +58,21 @@ export default function Sidebar() {
           </nav>
 
           <div className="border-t border-gray-200 p-4">
-            <Link
-              href="/"
-              className="group flex items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            <button
+              onClick={() => {
+                // Hapus cookie admin_token
+                document.cookie = "admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
+                // Hapus localStorage admin_role
+                localStorage.removeItem('admin_role');
+                // Redirect ke login
+                window.location.href = "/auth/login";
+              }}
+              className="group flex items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+              type="button"
             >
               <LogOut className="mr-3 h-5 w-5 flex-shrink-0 text-gray-500 group-hover:text-gray-900" />
               Keluar
-            </Link>
+            </button>
           </div>
         </div>
       </aside>

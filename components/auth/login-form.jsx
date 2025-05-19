@@ -17,70 +17,94 @@ function Input({ className = "", ...props }) {
   )
 }
 
+
 export default function LoginForm() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-  })
+  });
+  const [isAdminLogin, setIsAdminLogin] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
+    // Hapus session/cookie lama sebelum login baru
+    document.cookie = "admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
+    localStorage.removeItem('admin_role');
 
-    // Validate form
     if (!formData.email || !formData.password) {
-      setError("Please fill in all fields")
-      return
+      setError("Please fill in all fields");
+      return;
     }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address")
-      return
+      setError("Please enter a valid email address");
+      return;
     }
 
-    setIsLoading(true)
-
+    setIsLoading(true);
     try {
-      const result = await signIn("credentials", {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError(result.error)
-        return
-      }
-
-      // Get the session to check the role
-      const response = await fetch("/api/auth/session")
-      const session = await response.json()
-
-      // Redirect based on role
-      if (session?.user?.role === "admin") {
-        router.push("/dashboard")
+      if (isAdminLogin) {
+        // Admin login: call admin login API, set cookie
+        const res = await fetch("/api/auth/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: formData.email, password: formData.password })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Login failed");
+          return;
+        }
+        // Set cookie (expires in 1 day)
+        document.cookie = `admin_token=${data.token}; path=/; max-age=86400`;
+        // Simpan role ke localStorage agar bisa dipakai redirect/UX
+        if (data.admin && data.admin.role) {
+          localStorage.setItem('admin_role', data.admin.role);
+        }
+        // Redirect sesuai role
+        if (data.admin && data.admin.role === 'superadmin') {
+          router.push("/dashboard");
+        } else {
+          router.push("/dashboard"); // atau ke halaman khusus admin biasa jika ada
+        }
       } else {
-        router.push("/user")
+        // User login: use next-auth
+        const result = await signIn("credentials", {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+        });
+        if (result?.error) {
+          setError(result.error);
+          return;
+        }
+        // Get the session to check the role
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+        if (session?.user?.role === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/user");
+        }
       }
     } catch (err) {
-      setError(err.message || "An error occurred during login")
+      setError(err.message || "An error occurred during login");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="w-full max-w-md mx-auto mt-16 px-4">
@@ -148,19 +172,36 @@ export default function LoginForm() {
         </div>
 
         {/* Submit Button */}
-        <div>
+        <div className="flex gap-2">
           <Button
             type="submit"
             disabled={isLoading}
             className="w-full bg-black hover:bg-gray-900 text-white"
+            onClick={() => setIsAdminLogin(false)}
           >
-            {isLoading ? (
+            {isLoading && !isAdminLogin ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in...
               </>
             ) : (
-              "Sign in"
+              "Sign in as User"
+            )}
+          </Button>
+          <Button
+            type="submit"
+            variant="outline"
+            disabled={isLoading}
+            className="w-full"
+            onClick={() => setIsAdminLogin(true)}
+          >
+            {isLoading && isAdminLogin ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign in as Admin"
             )}
           </Button>
         </div>

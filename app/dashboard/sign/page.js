@@ -1,7 +1,23 @@
 "use client"
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import QRDisplay from '../../../components/sign/QRDisplay';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 export default function HomePage() {
   const [documents, setDocuments] = useState([]);
@@ -89,61 +105,78 @@ export default function HomePage() {
 
 
   return (
-    <main className="min-h-screen bg-white flex flex-col items-center justify-center py-12 px-4">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">Document Signing</h1>
-      <div className="flex flex-col md:flex-row items-stretch justify-center gap-8 w-full max-w-4xl">
-        <div className="flex-1 flex flex-col items-center md:items-end md:justify-center">
-          <div className="w-full max-w-md">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Select Document to Sign</h2>
-              {error && <div className="mb-4 text-red-600 text-center">{error}</div>}
-              <div className="space-y-4">
-                {documents.map((doc) => (
-                  <button
-                    key={doc.id}
-                    className={`w-full text-left p-4 border rounded-lg cursor-pointer transition focus:outline-none disabled:opacity-60 ${
-                      selectedDocument?.id === doc.id 
-                        ? 'border-black bg-gray-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => handleSignDocument(doc)}
-                    disabled={loading}
-                    type="button"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{doc.title}</h3>
-                        <p className="text-sm text-gray-500">{doc.description}</p>
-                        <span className="text-xs text-gray-500">
-                          {new Date(doc.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <span className={`text-xs px-2 py-1 rounded ml-4 ${
-                        doc.status === 'verified' 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {doc.status}
-                      </span>
-                    </div>
-                    {loading && selectedDocument?.id === doc.id && (
-                      <div className="flex items-center mt-2 text-sm text-gray-700">
-                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>
-                        Signing document...
-                      </div>
+    <main className="min-h-screen bg-background flex flex-col items-center py-0 px-2 md:px-6">
+      <h1 className="text-3xl font-bold text-foreground mb-8 mt-16 text-center">Document Signing</h1>
+      <div className="flex flex-row justify-center items-start gap-8 w-full max-w-7xl mx-auto mt-2">
+        <div className="flex-[2.5] flex flex-col items-center">
+          <Card className="w-full max-w-5xl shadow-md">
+            <CardHeader>
+              <CardTitle>Pilih Dokumen untuk Ditandatangani</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {error && <div className="mb-4 text-destructive text-center">{error}</div>}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-32">Tanggal</TableHead>
+                      <TableHead>Judul</TableHead>
+                      <TableHead>Deskripsi</TableHead>
+                      <TableHead>Nama Pemohon</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-36 text-center">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {documents.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground">Tidak ada dokumen</TableCell>
+                      </TableRow>
                     )}
-                  </button>
-                ))}
-                {documents.length === 0 && (
-                  <p className="text-center text-gray-500">No documents available</p>
-                )}
+                    {documents.map((doc) => (
+                      <TableRow key={doc.id} data-state={selectedDocument?.id === doc.id ? 'selected' : undefined}>
+                        <TableCell>{new Date(doc.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>{doc.title}</TableCell>
+                        <TableCell className="max-w-xs truncate" title={doc.description}>{doc.description}</TableCell>
+                        <TableCell>{doc.userName || '-'}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            doc.status === 'verified'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {doc.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            size="sm"
+                            variant={selectedDocument?.id === doc.id ? 'default' : 'outline'}
+                            onClick={() => handleSignDocument(doc)}
+                            disabled={loading}
+                          >
+                            {loading && selectedDocument?.id === doc.id ? (
+                              <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Memproses...</span>
+                            ) : 'Tandatangani'}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-            </div>
-
-          </div>
+            </CardContent>
+          </Card>
         </div>
-        <div className="flex-1 flex flex-col items-center md:items-start md:justify-center">
-          <QRDisplay qr={qr} />
+        <div className="flex-[1] flex flex-col items-center mt-0">
+          <Card className="w-full max-w-xs shadow-md">
+            <CardHeader>
+              <CardTitle>QR Code Tanda Tangan</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QRDisplay qr={qr} />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </main>

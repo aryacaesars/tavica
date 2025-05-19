@@ -41,13 +41,13 @@ export default function UploadForm({ onUpload, loading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center gap-4 w-full max-w-md mx-auto border border-gray-200">
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center gap-4 w-full max-w-xl mx-auto border border-gray-200">
       <label className="block w-full text-gray-900 font-semibold text-center">Upload PDF</label>
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         className="w-full flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 cursor-pointer transition hover:border-black bg-gray-50 text-gray-500 mb-2"
-        style={{ minHeight: 120 }}
+        style={{ minHeight: 120, maxWidth: 480 }}
         onClick={() => fileInput.current.click()}
       >
         {fileName ? (

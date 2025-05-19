@@ -6,8 +6,9 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    // Admin routes
-    if (path.startsWith("/dashboard") && token?.role !== "admin") {
+
+    // Admin routes (allow both admin and superadmin)
+    if (path.startsWith("/dashboard") && token?.role !== "admin" && token?.role !== "superadmin") {
       return NextResponse.redirect(new URL("/user", req.url));
     }
 

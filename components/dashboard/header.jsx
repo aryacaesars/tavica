@@ -1,11 +1,26 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Bell, Search, User } from "lucide-react"
 import Link from "next/link"
 
+import { fetchPendingDocuments } from "@/lib/dashboard-notifications"
+
 export default function DashboardHeader() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [pendingDocs, setPendingDocs] = useState([])
+  const [showNotif, setShowNotif] = useState(false)
+
+  useEffect(() => {
+    async function getPending() {
+      const docs = await fetchPendingDocuments()
+      setPendingDocs(docs)
+    }
+    getPending()
+    // Optionally, polling every 30s
+    const interval = setInterval(getPending, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <header className="bg-white shadow-sm">
@@ -16,28 +31,54 @@ export default function DashboardHeader() {
 
         {/* Search */}
         <div className="hidden flex-1 md:block">
-          <div className="relative max-w-xs">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Cari..."
-              className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-            />
-          </div>
+
         </div>
+
 
         {/* Right side icons */}
         <div className="flex items-center space-x-4">
           {/* Notifications */}
-          <button className="relative rounded-full bg-white p-1 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500">
-            <span className="sr-only">Lihat notifikasi</span>
-            <Bell className="h-6 w-6" />
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-              3
-            </span>
-          </button>
+          <div className="relative">
+            <button
+              className="relative rounded-full bg-white p-1 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              onClick={() => setShowNotif((v) => !v)}
+            >
+              <span className="sr-only">Lihat notifikasi</span>
+              <Bell className="h-6 w-6" />
+              {pendingDocs.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                  {pendingDocs.length}
+                </span>
+              )}
+            </button>
+            {/* Notification dropdown - always show when showNotif true */}
+            {showNotif && (
+              <div className="absolute right-0 mt-2 w-72 z-20 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 py-2">
+                <div className="px-4 py-2 text-sm font-semibold text-gray-700 border-b">Notifikasi</div>
+                {pendingDocs.length > 0 ? (
+                  <>
+                    {pendingDocs.map((doc) => (
+                      <div key={doc.id} className="px-4 py-2 text-sm text-gray-700 flex flex-col border-b last:border-b-0">
+                        <span className="font-medium">{doc.title || 'Dokumen tanpa judul'}</span>
+                        <span className="text-xs text-gray-500">Status: <span className="text-yellow-600">Menunggu tanda tangan</span></span>
+                      </div>
+                    ))}
+                    <button
+                      className="w-full text-center text-blue-600 hover:bg-gray-100 py-2 text-sm font-medium"
+                      onClick={() => {
+                        setShowNotif(false)
+                        window.location.href = '/dashboard/sign'
+                      }}
+                    >
+                      Lihat semua & tanda tangani
+                    </button>
+                  </>
+                ) : (
+                  <div className="px-4 py-6 text-center text-gray-500 text-sm">Tidak ada notifikasi</div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Profile dropdown */}
           <div className="relative ml-3">
