@@ -86,16 +86,7 @@ export default function HomePage() {
     }
   }
 
-  const handleDownload = () => {
-    if (!signedPdf) return;
-    
-    const link = document.createElement('a');
-    link.href = signedPdf.pdf;
-    link.download = signedPdf.filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+
 
   return (
     <main className="min-h-screen bg-white flex flex-col items-center justify-center py-12 px-4">
@@ -108,22 +99,26 @@ export default function HomePage() {
               {error && <div className="mb-4 text-red-600 text-center">{error}</div>}
               <div className="space-y-4">
                 {documents.map((doc) => (
-                  <div 
+                  <button
                     key={doc.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition ${
+                    className={`w-full text-left p-4 border rounded-lg cursor-pointer transition focus:outline-none disabled:opacity-60 ${
                       selectedDocument?.id === doc.id 
                         ? 'border-black bg-gray-50' 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => handleSignDocument(doc)}
+                    disabled={loading}
+                    type="button"
                   >
-                    <h3 className="font-medium">{doc.title}</h3>
-                    <p className="text-sm text-gray-500">{doc.description}</p>
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        {new Date(doc.createdAt).toLocaleDateString()}
-                      </span>
-                      <span className={`text-xs px-2 py-1 rounded ${
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">{doc.title}</h3>
+                        <p className="text-sm text-gray-500">{doc.description}</p>
+                        <span className="text-xs text-gray-500">
+                          {new Date(doc.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded ml-4 ${
                         doc.status === 'verified' 
                           ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'
@@ -131,21 +126,20 @@ export default function HomePage() {
                         {doc.status}
                       </span>
                     </div>
-                  </div>
+                    {loading && selectedDocument?.id === doc.id && (
+                      <div className="flex items-center mt-2 text-sm text-gray-700">
+                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>
+                        Signing document...
+                      </div>
+                    )}
+                  </button>
                 ))}
                 {documents.length === 0 && (
                   <p className="text-center text-gray-500">No documents available</p>
                 )}
               </div>
             </div>
-            {signedPdf && (
-              <button
-                onClick={handleDownload}
-                className="mt-4 py-2 px-4 rounded bg-black text-white font-bold hover:bg-gray-900 transition w-full"
-              >
-                Download Signed PDF
-              </button>
-            )}
+
           </div>
         </div>
         <div className="flex-1 flex flex-col items-center md:items-start md:justify-center">

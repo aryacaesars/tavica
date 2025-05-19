@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 export default function MyDocumentsPage() {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -66,6 +67,7 @@ export default function MyDocumentsPage() {
   };
 
   const downloadPDF = async (documentId, filename, hash, signature) => {
+    setDownloadingId(documentId);
     try {
       // Generate QR code payload
       const payload = { hash, signature, docId: documentId, timestamp: new Date().toISOString() };
@@ -104,6 +106,8 @@ export default function MyDocumentsPage() {
         description: error.message || "Gagal mengunduh dokumen",
         variant: "destructive",
       });
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -164,13 +168,16 @@ export default function MyDocumentsPage() {
                     </TableCell>
                     <TableCell>
                       {doc.verifiedAt && (
-<Button
-  variant="outline"
-  size="sm"
-  onClick={() => downloadPDF(doc.documentId, doc.filename || `signed-document-${doc.documentId}.pdf`, doc.hash, doc.signature)}
->
-  Download PDF
-</Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadPDF(doc.documentId, doc.filename || `signed-document-${doc.documentId}.pdf`, doc.hash, doc.signature)}
+                          disabled={downloadingId === doc.documentId}
+                        >
+                          {downloadingId === doc.documentId ? (
+                            <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Downloading...</span>
+                          ) : 'Download PDF'}
+                        </Button>
                       )}
                     </TableCell>
                   </TableRow>

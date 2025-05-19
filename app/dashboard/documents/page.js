@@ -40,6 +40,9 @@ export default function DocumentsPage() {
     userName: '',
     userNik: '',
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     fetchDocuments();
@@ -47,6 +50,7 @@ export default function DocumentsPage() {
 
   const fetchDocuments = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch('/api/documents');
       const data = await response.json();
       setDocuments(Array.isArray(data.documents) ? data.documents : []);
@@ -56,11 +60,14 @@ export default function DocumentsPage() {
         description: "Gagal mengambil data dokumen",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const response = await fetch('/api/documents', {
         method: 'POST',
@@ -85,6 +92,8 @@ export default function DocumentsPage() {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -97,6 +106,7 @@ export default function DocumentsPage() {
   };
 
   const handleSignature = async (documentId) => {
+    setIsVerifying(true);
     try {
       const response = await fetch(`/api/documents/${documentId}/sign`, {
         method: 'POST',
@@ -117,6 +127,8 @@ export default function DocumentsPage() {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -189,7 +201,11 @@ export default function DocumentsPage() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">Kirim Permohonan</Button>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span> Mengirim...</span>
+                ) : 'Kirim Permohonan'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -200,62 +216,72 @@ export default function DocumentsPage() {
           <CardTitle>Daftar Permohonan</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Judul</TableHead>
-                <TableHead>Jenis Dokumen</TableHead>
-                <TableHead>Pemohon</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Verifikasi</TableHead>
-                <TableHead>Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {documents.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell>{new Date(doc.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>{doc.title}</TableCell>
-                  <TableCell>{doc.documentType}</TableCell>
-                  <TableCell>{doc.userName}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      doc.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      doc.status === 'verified' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {doc.status === 'pending' ? 'Menunggu' :
-                       doc.status === 'verified' ? 'Terverifikasi' : 'Ditolak'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleDateString() : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {doc.status === 'pending' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSignature(doc.id)}
-                      >
-                        Verifikasi
-                      </Button>
-                    )}
-                    {doc.pdfUrl && (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        onClick={() => window.open(doc.pdfUrl, '_blank')}
-                      >
-                        Lihat PDF
-                      </Button>
-                    )}
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></span>
+              <span className="ml-3 text-gray-700">Memuat data...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Judul</TableHead>
+                  <TableHead>Jenis Dokumen</TableHead>
+                  <TableHead>Pemohon</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Verifikasi</TableHead>
+                  <TableHead>Aksi</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {documents.map((doc) => (
+                  <TableRow key={doc.id}>
+                    <TableCell>{new Date(doc.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{doc.title}</TableCell>
+                    <TableCell>{doc.documentType}</TableCell>
+                    <TableCell>{doc.userName}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        doc.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        doc.status === 'verified' ? 'bg-green-100 text-green-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {doc.status === 'pending' ? 'Menunggu' :
+                        doc.status === 'verified' ? 'Terverifikasi' : 'Ditolak'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleDateString() : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {doc.status === 'pending' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSignature(doc.id)}
+                          disabled={isVerifying}
+                        >
+                          {isVerifying ? (
+                            <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Verifikasi...</span>
+                          ) : 'Verifikasi'}
+                        </Button>
+                      )}
+                      {doc.pdfUrl && (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          onClick={() => window.open(doc.pdfUrl, '_blank')}
+                        >
+                          Lihat PDF
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

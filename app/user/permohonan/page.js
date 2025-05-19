@@ -126,17 +126,7 @@ function PermohonanSuratPageInner() {
             </Button>
           </form>
         )}
-        {pdfUrl && (
-          <div className="mt-6 text-center">
-            <a
-              href={pdfUrl}
-              download
-              className="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold mt-2"
-            >
-              Download PDF
-            </a>
-          </div>
-        )}
+
       </div>
     </main>
   );

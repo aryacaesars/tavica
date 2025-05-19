@@ -10,7 +10,8 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { FileText, CheckCircle } from "lucide-react";
+import { FileText, CheckCircle, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 export default function UserLayout({ children }) {
   return (
@@ -41,8 +42,15 @@ export default function UserLayout({ children }) {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter className="mt-auto mb-2 text-xs text-gray-400 flex justify-center">
-            Tavica © 2025
+          <SidebarFooter className="mt-auto mb-2 flex flex-col items-center gap-2">
+            <button
+              onClick={() => signOut({ callbackUrl: "/auth/login" })}
+              className="flex items-center gap-2 text-xs text-gray-500 hover:text-black px-3 py-2 rounded transition border border-transparent hover:border-gray-300"
+              type="button"
+            >
+              <LogOut className="h-4 w-4" /> Logout
+            </button>
+            <span className="text-xs text-gray-400">Tavica © 2025</span>
           </SidebarFooter>
         </Sidebar>
         {/* Main Content */}
