@@ -1,29 +1,56 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Bell, Search, User } from "lucide-react"
 import Link from "next/link"
 
 import { fetchPendingDocuments } from "@/lib/dashboard-notifications"
+import NotificationCenter from "./notification-center"
 
 export default function DashboardHeader() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [pendingDocs, setPendingDocs] = useState([])
   const [showNotif, setShowNotif] = useState(false)
+  const prevPendingCount = useRef(0)
+  const audioRef = useRef(null)
+  // For notification center
+  const [notifications, setNotifications] = useState([])
 
   useEffect(() => {
+    let prevIds = [];
     async function getPending() {
-      const docs = await fetchPendingDocuments()
-      setPendingDocs(docs)
+      const docs = await fetchPendingDocuments();
+      // Play sound if ada dokumen pending baru (id baru)
+      const newIds = docs.map(doc => doc.id);
+      const isNew = newIds.some(id => !prevIds.includes(id));
+      if (isNew && prevIds.length > 0) {
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play();
+        }
+      }
+      prevIds = newIds;
+      setPendingDocs(docs);
+      // Build notification objects for NotificationCenter
+      setNotifications(
+        docs.map(doc => ({
+          id: doc.id,
+          title: doc.title || 'Dokumen tanpa judul',
+          message: `Status: Menunggu tanda tangan (${doc.userName || '-'})`,
+          time: new Date(doc.createdAt).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' }),
+          type: 'info',
+        }))
+      );
     }
-    getPending()
-    // Optionally, polling every 30s
-    const interval = setInterval(getPending, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    getPending();
+    const interval = setInterval(getPending, 5000); // polling setiap 5 detik
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <header className="bg-white shadow-sm">
+      {/* Notification sound */}
+      <audio ref={audioRef} src="/notification.wav" preload="auto" />
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center md:hidden">
           {/* This space is for the mobile menu button that's in the Sidebar component */}
@@ -53,29 +80,17 @@ export default function DashboardHeader() {
             </button>
             {/* Notification dropdown - always show when showNotif true */}
             {showNotif && (
-              <div className="absolute right-0 mt-2 w-72 z-20 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 py-2">
-                <div className="px-4 py-2 text-sm font-semibold text-gray-700 border-b">Notifikasi</div>
-                {pendingDocs.length > 0 ? (
-                  <>
-                    {pendingDocs.map((doc) => (
-                      <div key={doc.id} className="px-4 py-2 text-sm text-gray-700 flex flex-col border-b last:border-b-0">
-                        <span className="font-medium">{doc.title || 'Dokumen tanpa judul'}</span>
-                        <span className="text-xs text-gray-500">Status: <span className="text-yellow-600">Menunggu tanda tangan</span></span>
-                      </div>
-                    ))}
-                    <button
-                      className="w-full text-center text-blue-600 hover:bg-gray-100 py-2 text-sm font-medium"
-                      onClick={() => {
-                        setShowNotif(false)
-                        window.location.href = '/dashboard/sign'
-                      }}
-                    >
-                      Lihat semua & tanda tangani
-                    </button>
-                  </>
-                ) : (
-                  <div className="px-4 py-6 text-center text-gray-500 text-sm">Tidak ada notifikasi</div>
-                )}
+              <div className="absolute right-0 mt-2 w-80 z-20 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 py-2">
+                <NotificationCenter notifications={notifications} onMarkAllRead={() => setPendingDocs([])} />
+                <button
+                  className="w-full text-center text-blue-600 hover:bg-gray-100 py-2 text-sm font-medium"
+                  onClick={() => {
+                    setShowNotif(false)
+                    window.location.href = '/dashboard/sign'
+                  }}
+                >
+                  Lihat semua & tanda tangani
+                </button>
               </div>
             )}
           </div>

@@ -107,9 +107,9 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-background flex flex-col items-center py-0 px-2 md:px-6">
       <h1 className="text-3xl font-bold text-foreground mb-8 mt-16 text-center">Document Signing</h1>
-      <div className="flex flex-row justify-center items-start gap-8 w-full max-w-7xl mx-auto mt-2">
-        <div className="flex-[2.5] flex flex-col items-center">
-          <Card className="w-full max-w-5xl shadow-md">
+      <div className="flex flex-row justify-center items-start gap-8 w-full max-w-full mx-auto mt-2">
+        <div className="flex-[4] flex flex-col items-center">
+          <Card className="w-full max-w-7xl shadow-md">
             <CardHeader>
               <CardTitle>Pilih Dokumen untuk Ditandatangani</CardTitle>
             </CardHeader>

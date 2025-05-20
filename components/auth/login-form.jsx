@@ -26,7 +26,7 @@ export default function LoginForm() {
     email: "",
     password: "",
   });
-  const [isAdminLogin, setIsAdminLogin] = useState(false);
+  // RBAC: tidak perlu toggle admin/user, backend akan handle role
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,49 +55,23 @@ export default function LoginForm() {
 
     setIsLoading(true);
     try {
-      if (isAdminLogin) {
-        // Admin login: call admin login API, set cookie
-        const res = await fetch("/api/auth/admin/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: formData.email, password: formData.password })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || "Login failed");
-          return;
-        }
-        // Set cookie (expires in 1 day)
-        document.cookie = `admin_token=${data.token}; path=/; max-age=86400`;
-        // Simpan role ke localStorage agar bisa dipakai redirect/UX
-        if (data.admin && data.admin.role) {
-          localStorage.setItem('admin_role', data.admin.role);
-        }
-        // Redirect sesuai role
-        if (data.admin && data.admin.role === 'superadmin') {
-          router.push("/dashboard");
-        } else {
-          router.push("/dashboard"); // atau ke halaman khusus admin biasa jika ada
-        }
+      // Satu endpoint login, backend akan handle role
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      // Get the session to check the role
+      const response = await fetch("/api/auth/session");
+      const session = await response.json();
+      if (session?.user?.role === "admin" || session?.user?.role === "superadmin") {
+        router.push("/dashboard");
       } else {
-        // User login: use next-auth
-        const result = await signIn("credentials", {
-          email: formData.email,
-          password: formData.password,
-          redirect: false,
-        });
-        if (result?.error) {
-          setError(result.error);
-          return;
-        }
-        // Get the session to check the role
-        const response = await fetch("/api/auth/session");
-        const session = await response.json();
-        if (session?.user?.role === "admin") {
-          router.push("/dashboard");
-        } else {
-          router.push("/user");
-        }
+        router.push("/user");
       }
     } catch (err) {
       setError(err.message || "An error occurred during login");
@@ -127,7 +101,7 @@ export default function LoginForm() {
             id="email"
             name="email"
             type="email"
-            value={formData.email}
+            value={formData.email ?? ""}
             onChange={handleChange}
             placeholder="your@email.com"
             required
@@ -149,59 +123,30 @@ export default function LoginForm() {
             id="password"
             name="password"
             type="password"
-            value={formData.password}
+            value={formData.password ?? ""}
             onChange={handleChange}
             required
             className="mt-1"
           />
         </div>
 
-        {/* Remember me */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-gray-500"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-              Remember me
-            </label>
-          </div>
-        </div>
+
+
 
         {/* Submit Button */}
-        <div className="flex gap-2">
+        <div>
           <Button
             type="submit"
             disabled={isLoading}
             className="w-full bg-black hover:bg-gray-900 text-white"
-            onClick={() => setIsAdminLogin(false)}
           >
-            {isLoading && !isAdminLogin ? (
+            {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in...
               </>
             ) : (
-              "Sign in as User"
-            )}
-          </Button>
-          <Button
-            type="submit"
-            variant="outline"
-            disabled={isLoading}
-            className="w-full"
-            onClick={() => setIsAdminLogin(true)}
-          >
-            {isLoading && isAdminLogin ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              "Sign in as Admin"
+              "Sign in"
             )}
           </Button>
         </div>
