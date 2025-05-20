@@ -1,37 +1,31 @@
+// Only one GET handler is needed, keep this if you want to support GET for download
 export async function GET(request, { params }) {
   try {
     const { id } = params;
-
-    // Get document from database
     const document = await prisma.document.findUnique({
       where: { id: parseInt(id) }
     });
-
     if (!document) {
       return NextResponse.json(
         { error: 'Document not found' },
         { status: 404 }
       );
     }
-
-    // Only allow download if verified
     if (document.status !== 'verified') {
       return NextResponse.json(
         { error: 'Document not verified yet' },
         { status: 403 }
       );
     }
-
-    // Fetch PDF from URL
-    const pdfRes = await fetch(document.pdfUrl);
-    if (!pdfRes.ok) {
-      throw new Error('Failed to fetch PDF');
+    // Ambil base64 PDF dari kolom pdfUrl
+    if (!document.pdfUrl || !document.pdfUrl.startsWith('data:application/pdf;base64,')) {
+      return NextResponse.json(
+        { error: 'Signed PDF not found, silakan embed QR dulu.' },
+        { status: 404 }
+      );
     }
-    const pdfBytes = await pdfRes.arrayBuffer();
-    const base64Pdf = Buffer.from(pdfBytes).toString('base64');
-
     return NextResponse.json({
-      pdf: `data:application/pdf;base64,${base64Pdf}`,
+      pdf: document.pdfUrl,
       filename: `signed-${document.title}.pdf`
     });
   } catch (error) {
@@ -42,14 +36,17 @@ export async function GET(request, { params }) {
     );
   }
 }
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 export async function POST(request, { params }) {
   try {
     const { id } = params;
-    const { qrCode } = await request.json();
+    const body = await request.json();
+    const { qrCode, adminNama, adminNip, adminJabatan, date } = body;
+    console.log('RECEIVED IN EMBED-QR:', { qrCode, adminNama, adminNip, adminJabatan, date }); // DEBUG
 
     if (!qrCode) {
       return NextResponse.json(
@@ -92,24 +89,60 @@ export async function POST(request, { params }) {
     const { width, height } = page.getSize();
     const qrWidth = width * 0.2;
     const qrHeight = qrWidth;
-    
+    const qrX = width - qrWidth - 20;
+    // Naikkan posisi QR code lebih tinggi agar teks admin muat di bawahnya
+    const marginBottom = 120; // px jarak dari bawah halaman
+    const qrY = marginBottom;
+
     page.drawImage(qrImage, {
-      x: width - qrWidth - 20,
-      y: 20,
+      x: qrX,
+      y: qrY,
       width: qrWidth,
       height: qrHeight
     });
+
+    // Draw admin info below QR with embedded font
+    const fontSize = 13;
+    const textGap = fontSize + 2;
+    // Selalu pakai data admin dari request body (akun yang login)
+    const nama = adminNama || '-';
+    const nip = adminNip || '-';
+    const jabatan = adminJabatan || '-';
+    const infoLines = [
+      `Nama: ${nama}`,
+      `NIP: ${nip}`,
+      `Jabatan: ${jabatan}`,
+      date ? `Tanggal: ${date}` : ''
+    ];
+
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    // Tulis info admin di bawah QR, rata kiri bawah halaman
+    const textX = qrX;
+    let textY = qrY + qrHeight + 12;
+    for (const line of infoLines) {
+      page.drawText(line, {
+        x: textX,
+        y: textY,
+        size: fontSize,
+        font: font,
+        color: rgb(0, 0, 0),
+        opacity: 1
+      });
+      textY += textGap;
+    }
 
     // Save modified PDF
     const modifiedPdfBytes = await pdfDoc.save();
     const base64Pdf = Buffer.from(modifiedPdfBytes).toString('base64');
     
-    // Update document in database
+    // Simpan base64 PDF ke kolom pdfUrl
     await prisma.document.update({
       where: { id: parseInt(id) },
       data: {
         status: 'verified',
-        verifiedAt: new Date()
+        verifiedAt: new Date(),
+        pdfUrl: `data:application/pdf;base64,${base64Pdf}`
       }
     });
 
@@ -124,4 +157,4 @@ export async function POST(request, { params }) {
       { status: 500 }
     );
   }
-} 
+}

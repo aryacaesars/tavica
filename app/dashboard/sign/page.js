@@ -44,13 +44,14 @@ export default function HomePage() {
     }
   }
 
+
   async function handleSignDocument(document) {
     setLoading(true);
     setError('');
     setQr(null);
     setSignedPdf(null);
     setSelectedDocument(document);
-    
+
     try {
       // 1. Hash the PDF
       const hashRes = await fetch(`/api/documents/${document.id}/hash`);
@@ -83,12 +84,29 @@ export default function HomePage() {
       if (!qrRes.ok) throw new Error(qrData.error || 'Failed to generate QR');
       setQr(qrData.qr);
 
-      // 4. Embed QR code in PDF
+      // 4. Fetch admin info
+      const adminRes = await fetch('/api/admin/me', { credentials: 'include' });
+      const adminData = await adminRes.json();
+      console.log('ADMIN DATA:', adminData); // DEBUG
+      if (!adminRes.ok) throw new Error(adminData.error || 'Gagal mengambil data admin');
+      const { nama, nip, jabatan } = adminData.admin || {};
+      console.log('ADMIN FIELDS:', { nama, nip, jabatan }); // DEBUG
+      const date = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      // 5. Embed QR code in PDF with admin info
       const embedRes = await fetch(`/api/documents/${document.id}/embed-qr`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrCode: qrData.qr })
+        body: JSON.stringify({
+          qrCode: qrData.qr,
+          adminNama: nama,
+          adminNip: nip,
+          adminJabatan: jabatan,
+          date
+        })
       });
+      // DEBUG: log what is sent to backend
+      console.log('SEND TO EMBED-QR:', { qrCode: qrData.qr, adminNama: nama, adminNip: nip, adminJabatan: jabatan, date });
       const embedData = await embedRes.json();
       if (!embedRes.ok) throw new Error(embedData.error || 'Failed to embed QR code');
       setSignedPdf(embedData);
