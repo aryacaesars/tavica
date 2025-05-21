@@ -2,11 +2,13 @@
 import { useEffect, useState } from "react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function AdminTable({ onCreateClick, createDisabled }) {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function fetchAdmins() {
@@ -31,6 +33,15 @@ export default function AdminTable({ onCreateClick, createDisabled }) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold">Daftar Admin</h2>
         <Button onClick={onCreateClick} disabled={createDisabled}>Create New Admin</Button>
+      </div>
+      <div className="flex items-center justify-between mb-4">
+        <Input
+          type="text"
+          placeholder="Cari admin (username, email, nama, jabatan, NIP, WA) ..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="max-w-xs border border-gray-300 rounded px-3 py-2"
+        />
       </div>
       {error && <div className="text-red-600 mb-2">{error}</div>}
       <div className="overflow-x-auto">
@@ -58,19 +69,40 @@ export default function AdminTable({ onCreateClick, createDisabled }) {
                 <TableCell colSpan={9}>Tidak ada admin terdaftar.</TableCell>
               </TableRow>
             ) : (
-              admins.map((admin) => (
-                <TableRow key={admin.id}>
-                  <TableCell>{admin.id}</TableCell>
-                  <TableCell>{admin.username}</TableCell>
-                  <TableCell>{admin.email}</TableCell>
-                  <TableCell>{admin.nama}</TableCell>
-                  <TableCell>{admin.jabatan}</TableCell>
-                  <TableCell>{admin.nip}</TableCell>
-                  <TableCell>{admin.noWa}</TableCell>
-                  <TableCell>{admin.isActive ? "Aktif" : "Nonaktif"}</TableCell>
-                  <TableCell>{new Date(admin.createdAt).toLocaleDateString()}</TableCell>
-                </TableRow>
-              ))
+              (() => {
+                const filtered = admins.filter((admin) => {
+                  if (!search) return true;
+                  const s = search.toLowerCase();
+                  return (
+                    (admin.username && admin.username.toLowerCase().includes(s)) ||
+                    (admin.email && admin.email.toLowerCase().includes(s)) ||
+                    (admin.nama && admin.nama.toLowerCase().includes(s)) ||
+                    (admin.jabatan && admin.jabatan.toLowerCase().includes(s)) ||
+                    (admin.nip && admin.nip.toLowerCase().includes(s)) ||
+                    (admin.noWa && admin.noWa.toLowerCase().includes(s))
+                  );
+                });
+                if (filtered.length === 0) {
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center text-gray-400 py-8">Tidak ada admin yang cocok dengan pencarian.</TableCell>
+                    </TableRow>
+                  );
+                }
+                return filtered.map((admin) => (
+                  <TableRow key={admin.id}>
+                    <TableCell>{admin.id}</TableCell>
+                    <TableCell>{admin.username}</TableCell>
+                    <TableCell>{admin.email}</TableCell>
+                    <TableCell>{admin.nama}</TableCell>
+                    <TableCell>{admin.jabatan}</TableCell>
+                    <TableCell>{admin.nip}</TableCell>
+                    <TableCell>{admin.noWa}</TableCell>
+                    <TableCell>{admin.isActive ? "Aktif" : "Nonaktif"}</TableCell>
+                    <TableCell>{new Date(admin.createdAt).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ));
+              })()
             )}
           </TableBody>
         </Table>

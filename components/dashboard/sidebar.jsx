@@ -15,7 +15,6 @@ export default function Sidebar() {
 
   const menuItems = [
     { name: "Dashboard", icon: Home, href: "/dashboard" },
-    { name: "Dokumen", icon: FileText, href: "/dashboard/documents" },
     { name: "User", icon: Users, href: "/dashboard/user" },
     { name: "E-Signature", icon: FileSignature, href: "/dashboard/sign" },
     { name : "Verifikasi", icon: Clock, href: "/dashboard/verify" },
@@ -36,7 +35,7 @@ export default function Sidebar() {
       </div>
 
       {/* Sidebar for Desktop */}
-      <aside className="hidden w-64 flex-shrink-0 border-r border-gray-200 bg-white md:flex md:flex-col">
+      <aside className="hidden w-48 flex-shrink-0 border-r border-gray-200 bg-white md:flex md:flex-col sticky top-0 h-screen z-30">
         <div className="flex h-16 items-center justify-center border-b border-gray-200">
           <Link href="/dashboard" className="text-xl font-bold text-gray-900">
             Tavica Admin
@@ -84,7 +83,7 @@ export default function Sidebar() {
           <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)}></div>
 
           {/* Sidebar */}
-          <div className="relative flex w-full max-w-xs flex-1 flex-col bg-white pt-5">
+          <div className="relative flex w-full max-w-[12rem] flex-1 flex-col bg-white pt-5">
             <div className="absolute right-0 top-0 -mr-12 pt-2">
               <button
                 onClick={() => setIsMobileMenuOpen(false)}

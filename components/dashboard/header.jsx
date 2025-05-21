@@ -48,7 +48,7 @@ export default function DashboardHeader() {
   }, []);
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-white shadow-sm sticky top-0 z-40">
       {/* Notification sound */}
       <audio ref={audioRef} src="/notification.wav" preload="auto" />
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
@@ -80,7 +80,7 @@ export default function DashboardHeader() {
             </button>
             {/* Notification dropdown - always show when showNotif true */}
             {showNotif && (
-              <div className="absolute right-0 mt-2 w-80 z-20 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 py-2">
+              <div className="absolute right-0 mt-2 w-80 max-h-80 z-20 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 py-2 px-4 overflow-y-auto space-y-2">
                 <NotificationCenter notifications={notifications} onMarkAllRead={() => setPendingDocs([])} />
                 <button
                   className="w-full text-center text-blue-600 hover:bg-gray-100 py-2 text-sm font-medium"
@@ -118,13 +118,7 @@ export default function DashboardHeader() {
                 >
                   Profil Anda
                 </Link>
-                <Link
-                  href="/dashboard/settings"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsProfileMenuOpen(false)}
-                >
-                  Pengaturan
-                </Link>
+
                 <Link
                   href="/"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

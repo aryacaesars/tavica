@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-const ProfileCard = dynamic(() => import("./ProfileCard"), { ssr: false });
+const ProfileCard = dynamic(() => import("../../../components/dashboard/ProfileCard"), { ssr: false });
 
 export default function ProfilePage() {
   const [admin, setAdmin] = useState(null);
