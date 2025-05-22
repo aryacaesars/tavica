@@ -1,0 +1,41 @@
+{
+  "title": "Our Team",
+  "team_members": [
+    {
+      "id": 1,
+      "name": "Akbar Hidayatullah",
+      "role": "Penulis Karya Tulis Ilmiah",
+      "bio": "Passionate about creating beautiful and intuitive user interfaces with React and modern CSS frameworks.",
+      "image": "/akbar.jpg",
+      "social": {
+        "instagram": "https://instagram.com/alexjohnson",
+        "github": "https://github.com/alexjohnson",
+        "linkedin": "https://linkedin.com/in/alexjohnson"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Arya Achmad Caesar", 
+      "role": "Developer",
+      "bio": "Next.js enthusiast with a knack for building high-performance web applications and optimizing user experiences.",
+      "image": "/arya4.png",
+      "social": {
+        "instagram": "https://instagram.com/aryaacaesar",
+        "github": "https://github.com/aryacaesars",
+        "linkedin": "https://linkedin.com/in/sarahwilliams"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Nabil Muflih Wardana",
+      "role": "Penulis Laporan",
+      "bio": "Specialized in building robust and scalable backend systems with Node.js and Python for enterprise applications.",
+      "image": "/nabil.jpg",
+      "social": {
+        "instagram": "https://instagram.com/michaelchen",
+        "github": "https://github.com/michaelchen",
+        "linkedin": "https://linkedin.com/in/michaelchen"
+      }
+    }
+  ]
+}
