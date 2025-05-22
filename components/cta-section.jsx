@@ -13,13 +13,13 @@ export default function CtaSection() {
             </p>
             <div className="mt-10 flex flex-col space-y-3 sm:flex-row sm:justify-center sm:space-x-4 sm:space-y-0">
               <Link
-                href="/login"
+                href="/auth/login"
                 className="rounded-md bg-white px-8 py-3 text-center text-base font-medium text-gray-900 shadow-sm hover:bg-gray-100"
               >
                 Login
               </Link>
               <Link
-                href="/register"
+                href="/auth/register"
                 className="rounded-md bg-gradient-to-r from-gray-700 to-gray-600 px-8 py-3 text-center text-base font-medium text-white shadow-sm hover:from-gray-600 hover:to-gray-500"
               >
                 Register

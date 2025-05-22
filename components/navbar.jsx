@@ -26,12 +26,16 @@ export default function Navbar() {
             <Link href="#features" className="text-sm font-medium text-gray-700 hover:text-gray-900">
               Fitur
             </Link>
+                        <Link href="#verifikasi" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+              Verifikasi
+            </Link>  
             <Link href="#about" className="text-sm font-medium text-gray-700 hover:text-gray-900">
               Tentang Kami
             </Link>
             <Link href="#contact" className="text-sm font-medium text-gray-700 hover:text-gray-900">
               Kontak
-            </Link>          </div>          <div className="flex items-center space-x-4">
+            </Link> 
+         </div>          <div className="flex items-center space-x-4">
             {session ? (              <Link 
                 href={userRole === "admin" || userRole === "superadmin" ? "/dashboard" : "/user"}
                 className="rounded-md bg-gradient-to-r from-gray-800 to-gray-900 px-10 py-2 text-sm font-medium text-white hover:from-gray-700 hover:to-gray-800 min-w-36 text-center whitespace-nowrap"

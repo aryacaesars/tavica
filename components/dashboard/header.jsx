@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Bell, Search, User } from "lucide-react"
 import Link from "next/link"
+import { signOut } from "next-auth/react"
 
 import { fetchPendingDocuments } from "@/lib/dashboard-notifications"
 import NotificationCenter from "./notification-center"
@@ -117,15 +118,15 @@ export default function DashboardHeader() {
                   onClick={() => setIsProfileMenuOpen(false)}
                 >
                   Profil Anda
-                </Link>
-
-                <Link
-                  href="/"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsProfileMenuOpen(false)}
+                </Link>                <button
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    signOut({ callbackUrl: '/auth/login' });
+                  }}
                 >
                   Keluar
-                </Link>
+                </button>
               </div>
             )}
           </div>
