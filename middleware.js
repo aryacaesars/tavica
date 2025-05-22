@@ -9,12 +9,17 @@ export default withAuth(
 
     // Admin routes (allow both admin and superadmin)
     if (path.startsWith("/dashboard") && token?.role !== "admin" && token?.role !== "superadmin") {
-      return NextResponse.redirect(new URL("/user", req.url));
+      return NextResponse.redirect(new URL("/unauthorized?from=" + encodeURIComponent(path), req.url));
     }
 
     // User routes
     if (path.startsWith("/user") && !token) {
-      return NextResponse.redirect(new URL("/login", req.url));
+      return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
+    
+    // Regular users should not access admin pages
+    if (path.startsWith("/user") && (token?.role === "admin" || token?.role === "superadmin")) {
+      return NextResponse.redirect(new URL("/unauthorized?from=" + encodeURIComponent(path), req.url));
     }
 
     return NextResponse.next();

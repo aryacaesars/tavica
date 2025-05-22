@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import PDFDropzone from '../../../components/verify/PDFDropzone';
-import VerificationResult from '../../../components/verify/VerificationResult';
-import { extractQRFromPDF } from '../../../lib/pdf-utils';
+import PDFDropzone from '../../components/verify/PDFDropzone';
+import VerificationResult from '../../components/verify/VerificationResult';
+import { extractQRFromPDF } from '../../lib/pdf-utils';
 
 export default function VerifyPage() {
   const [loading, setLoading] = useState(false);
@@ -44,9 +44,8 @@ export default function VerifyPage() {
     } finally {
       setLoading(false);
     }
-  };
-  return (
-    <main className="min-h-screen bg-white flex flex-col items-center justify-center py-12 px-4">
+  };  return (
+    <main className="flex flex-col items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <h1 className="text-3xl font-bold text-black mb-8 text-center">
           Verify Document Signature

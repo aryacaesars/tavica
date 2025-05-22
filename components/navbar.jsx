@@ -3,9 +3,13 @@
 import Link from "next/link"
 import { Menu } from "lucide-react"
 import { useState } from "react"
+import { useSession } from "next-auth/react"
 
 export default function Navbar() {
+  const { data: session } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  
+  const userRole = session?.user?.role
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-sm">
@@ -27,18 +31,26 @@ export default function Navbar() {
             </Link>
             <Link href="#contact" className="text-sm font-medium text-gray-700 hover:text-gray-900">
               Kontak
-            </Link>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Link href="/auth/login" className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
-              Login
-            </Link>
-            <Link
-              href="/auth/register"
-              className="rounded-md bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-2 text-sm font-medium text-white hover:from-gray-700 hover:to-gray-800"
-            >
-              Register
-            </Link>
+            </Link>          </div>          <div className="flex items-center space-x-4">
+            {session ? (              <Link 
+                href={userRole === "admin" || userRole === "superadmin" ? "/dashboard" : "/user"}
+                className="rounded-md bg-gradient-to-r from-gray-800 to-gray-900 px-10 py-2 text-sm font-medium text-white hover:from-gray-700 hover:to-gray-800 min-w-36 text-center whitespace-nowrap"
+              >
+                {userRole === "admin" || userRole === "superadmin" ? "Admin Dashboard" : "User Dashboard"}
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/login" className="rounded-md px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border border-gray-200 min-w-24 text-center">
+                  Login
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="rounded-md bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-2 text-sm font-medium text-white hover:from-gray-700 hover:to-gray-800 min-w-24 text-center"
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -75,22 +87,31 @@ export default function Navbar() {
               onClick={() => setIsMenuOpen(false)}
             >
               Kontak
-            </Link>
-            <div className="mt-4 flex flex-col space-y-2">
-              <Link
-                href="/login"
-                className="w-full rounded-md border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="w-full rounded-md bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-2 text-center text-sm font-medium text-white hover:from-gray-700 hover:to-gray-800"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Register
-              </Link>
+            </Link>            <div className="mt-4 flex flex-col space-y-3">
+              {session ? (                <Link
+                  href={userRole === "admin" || userRole === "superadmin" ? "/dashboard" : "/user"}
+                  className="w-full rounded-md bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-2.5 text-center text-sm font-medium text-white hover:from-gray-700 hover:to-gray-800 whitespace-nowrap"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {userRole === "admin" || userRole === "superadmin" ? "Admin Dashboard" : "User Dashboard"}
+                </Link>
+              ) : (
+                <>                  <Link
+                    href="/auth/login"
+                    className="w-full rounded-md border border-gray-300 px-6 py-2.5 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="w-full rounded-md bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-2.5 text-center text-sm font-medium text-white hover:from-gray-700 hover:to-gray-800"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
