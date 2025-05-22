@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -22,6 +23,7 @@ import { useRouter } from "next/navigation";
 
 export default function MyDocumentsPage() {
   const [documents, setDocuments] = useState([]);
+  const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState(null);
   const { data: session, status } = useSession();
@@ -127,6 +129,16 @@ export default function MyDocumentsPage() {
         <h1 className="text-2xl font-bold">Dokumen Tandatangan</h1>
       </div>
 
+      {/* Searchbar */}
+      <div className="mb-4 max-w-md">
+        <Input
+          type="text"
+          placeholder="Cari nama file, hash, status..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Daftar Dokumen Tandatangan</CardTitle>
@@ -151,37 +163,48 @@ export default function MyDocumentsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                documents.map((doc) => (
-                  <TableRow key={doc.id}>
-                    <TableCell>{new Date(doc.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>{doc.filename || '-'}</TableCell>
-                    <TableCell className="font-mono text-xs">{doc.hash}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        doc.verifiedAt ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {doc.verifiedAt ? 'Terverifikasi' : 'Menunggu'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleDateString() : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {doc.verifiedAt && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => downloadPDF(doc.documentId, doc.filename || `signed-document-${doc.documentId}.pdf`, doc.hash, doc.signature)}
-                          disabled={downloadingId === doc.documentId}
-                        >
-                          {downloadingId === doc.documentId ? (
-                            <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Downloading...</span>
-                          ) : 'Download PDF'}
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
+                documents
+                  .filter(doc => {
+                    const q = search.toLowerCase();
+                    return (
+                      (!search) ||
+                      (doc.filename && doc.filename.toLowerCase().includes(q)) ||
+                      (doc.hash && doc.hash.toLowerCase().includes(q)) ||
+                      (doc.verifiedAt && 'terverifikasi'.includes(q)) ||
+                      (!doc.verifiedAt && 'menunggu'.includes(q))
+                    );
+                  })
+                  .map((doc) => (
+                    <TableRow key={doc.id}>
+                      <TableCell>{new Date(doc.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>{doc.filename || '-'}</TableCell>
+                      <TableCell className="font-mono text-xs">{doc.hash}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          doc.verifiedAt ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {doc.verifiedAt ? 'Terverifikasi' : 'Menunggu'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleDateString() : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {doc.verifiedAt && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadPDF(doc.documentId, doc.filename || `signed-document-${doc.documentId}.pdf`, doc.hash, doc.signature)}
+                            disabled={downloadingId === doc.documentId}
+                          >
+                            {downloadingId === doc.documentId ? (
+                              <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Downloading...</span>
+                            ) : 'Download PDF'}
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
               )}
             </TableBody>
           </Table>
