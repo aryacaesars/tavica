@@ -8,8 +8,7 @@ export default function CtaSection() {
           <div className="mx-auto max-w-xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Siap Untuk Memulai?</h2>
             <p className="mt-4 text-lg text-gray-300">
-              Bergabunglah dengan ratusan kelurahan yang telah menggunakan Tavica untuk meningkatkan efisiensi
-              administrasi dan pelayanan warga.
+              Bergabunglah dengan kami dan tingkatkan pengalaman Anda dalam mengelola data dan informasi.              
             </p>
             <div className="mt-10 flex flex-col space-y-3 sm:flex-row sm:justify-center sm:space-x-4 sm:space-y-0">
               <Link
