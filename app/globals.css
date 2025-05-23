@@ -15,6 +15,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
+  /* Variabel primary & secondary bawaan shadcn/ui (oklch) */
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
@@ -40,6 +41,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Variabel warna primary dan secondary kustom Anda */
+  --app-primary-color: #d87300; /* Contoh: Biru */
+  --app-primary-foreground-color: #ffffff; /* Contoh: Putih untuk teks di atas primary */
+  --app-secondary-color: #6c757d; /* Contoh: Abu-abu */
+  --app-secondary-foreground-color: #ffffff; /* Contoh: Putih untuk teks di atas secondary */
 }
 
 @theme inline {
@@ -99,6 +105,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
+  /* Variabel primary & secondary bawaan shadcn/ui untuk mode gelap (oklch) */
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
@@ -124,6 +131,11 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* Variabel warna primary dan secondary kustom Anda untuk tema gelap */
+  --app-primary-color: #58a6ff; /* Contoh: Biru lebih terang */
+  --app-primary-foreground-color: #000000; /* Contoh: Hitam untuk teks di atas primary gelap */
+  --app-secondary-color: #8b949e; /* Contoh: Abu-abu lebih terang */
+  --app-secondary-foreground-color: #000000; /* Contoh: Hitam untuk teks di atas secondary gelap */
 }
 
 /* Tambahkan ke file d:\KI\tavica\app\globals.css */
