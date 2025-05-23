@@ -36,27 +36,45 @@ export default function MyDocumentsPage() {
     }
 
     if (session) {
-      fetchSignedDocuments();
+      fetchDocuments();
     }
   }, [session, status, router]);
 
-  const fetchSignedDocuments = async () => {
+  // Ambil dokumen pending dari /api/documents, dokumen verified dari /api/signed-documents
+  const fetchDocuments = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/signed-documents', {
+      // Ambil dokumen pending dari /api/documents
+      const pendingRes = await fetch('/api/documents', {
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch signed documents');
+      let pendingDocuments = [];
+      if (pendingRes.ok) {
+        const pendingData = await pendingRes.json();
+        // Support { documents: [...] } atau array langsung
+        const docs = Array.isArray(pendingData) ? pendingData : pendingData.documents;
+        pendingDocuments = docs.filter(doc => !doc.verifiedAt);
       }
-      
-      const data = await response.json();
-      setDocuments(Array.isArray(data) ? data : []);
+
+      // Ambil dokumen verified dari /api/signed-documents
+      const verifiedRes = await fetch('/api/signed-documents', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      let verifiedDocuments = [];
+      if (verifiedRes.ok) {
+        const verifiedData = await verifiedRes.json();
+        // Support array langsung atau { documents: [...] }
+        verifiedDocuments = Array.isArray(verifiedData) ? verifiedData : (verifiedData.documents || []);
+      }
+
+      // Gabungkan, pending dulu lalu verified
+      setDocuments([...pendingDocuments, ...verifiedDocuments]);
     } catch (error) {
       toast({
         title: "Error",
@@ -123,6 +141,9 @@ export default function MyDocumentsPage() {
     );
   }
 
+  // Filter dokumen pending
+  const pendingDocuments = documents.filter(doc => !doc.verifiedAt);
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
@@ -139,6 +160,45 @@ export default function MyDocumentsPage() {
         />
       </div>
 
+      {/* Tabel Dokumen Pending */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Dokumen Pending</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tanggal</TableHead>
+                <TableHead>Nama File</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pendingDocuments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">
+                    Tidak ada dokumen pending
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pendingDocuments.map((doc) => (
+                  <TableRow key={doc.id}>
+                    <TableCell>{new Date(doc.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{doc.title || '-'}</TableCell>
+                    <TableCell>{doc.documentType || '-'}</TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">Menunggu</span>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Tabel Semua Dokumen */}
       <Card>
         <CardHeader>
           <CardTitle>Daftar Dokumen Tandatangan</CardTitle>
@@ -164,14 +224,14 @@ export default function MyDocumentsPage() {
                 </TableRow>
               ) : (
                 documents
+                  .filter(doc => doc.verifiedAt) // hanya tampilkan dokumen yang sudah diverifikasi
                   .filter(doc => {
                     const q = search.toLowerCase();
                     return (
                       (!search) ||
                       (doc.filename && doc.filename.toLowerCase().includes(q)) ||
                       (doc.hash && doc.hash.toLowerCase().includes(q)) ||
-                      (doc.verifiedAt && 'terverifikasi'.includes(q)) ||
-                      (!doc.verifiedAt && 'menunggu'.includes(q))
+                      (doc.verifiedAt && 'terverifikasi'.includes(q))
                     );
                   })
                   .map((doc) => (
@@ -180,28 +240,22 @@ export default function MyDocumentsPage() {
                       <TableCell>{doc.filename || '-'}</TableCell>
                       <TableCell className="font-mono text-xs">{doc.hash}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          doc.verifiedAt ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {doc.verifiedAt ? 'Terverifikasi' : 'Menunggu'}
-                        </span>
+                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Terverifikasi</span>
                       </TableCell>
                       <TableCell>
                         {doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleDateString() : '-'}
                       </TableCell>
                       <TableCell>
-                        {doc.verifiedAt && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => downloadPDF(doc.documentId, doc.filename || `signed-document-${doc.documentId}.pdf`, doc.hash, doc.signature)}
-                            disabled={downloadingId === doc.documentId}
-                          >
-                            {downloadingId === doc.documentId ? (
-                              <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Downloading...</span>
-                            ) : 'Download PDF'}
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadPDF(doc.documentId, doc.filename || `signed-document-${doc.documentId}.pdf`, doc.hash, doc.signature)}
+                          disabled={downloadingId === doc.documentId}
+                        >
+                          {downloadingId === doc.documentId ? (
+                            <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Downloading...</span>
+                          ) : 'Download PDF'}
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))

@@ -89,7 +89,8 @@ export async function POST(request, { params }) {
     const { width, height } = page.getSize();
     const qrWidth = width * 0.2;
     const qrHeight = qrWidth;
-    const qrX = width - qrWidth - 20;
+    // Geser QR code ke kiri 4px dari posisi sebelumnya
+    const qrX = width - qrWidth - 30;
     // Naikkan posisi QR code lebih tinggi agar teks admin muat di bawahnya
     const marginBottom = 120; // px jarak dari bawah halaman
     const qrY = marginBottom;
