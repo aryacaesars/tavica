@@ -29,9 +29,7 @@ export default function Navbar() {
                         <Link href="#verifikasi" className="text-sm font-medium text-gray-700 hover:text-gray-900">
               Verifikasi
             </Link>  
-            <Link href="/aboutus" className="text-sm font-medium text-gray-700 hover:text-gray-900">
-              Tentang Kami
-            </Link>
+
             <Link href="#contact" className="text-sm font-medium text-gray-700 hover:text-gray-900">
               Kontak
             </Link> 
