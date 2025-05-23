@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { verifyAdminToken } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
-import CryptoJS from 'crypto-js';
+import { hashBlake3 } from '@/lib/blake3';
+import { blake3 } from '@noble/hashes/blake3';
+import { bytesToHex } from '@noble/hashes/utils';
 import QRCode from 'qrcode';
 import { PDFDocument } from 'pdf-lib';
 
@@ -40,14 +42,18 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Generate document hash using SHA-256
-    const documentHash = CryptoJS.SHA256(document.pdfUrl).toString();
 
-    // Create signature using HMAC
-    const signature = CryptoJS.HmacSHA256(
-      documentHash,
-      process.env.ED25519_PRIVATE_KEY
-    ).toString();
+    // Generate document hash using BLAKE3
+    const encoder = new TextEncoder();
+    const documentHash = hashBlake3(encoder.encode(document.pdfUrl));
+
+    // Create signature using BLAKE3 (concatenate hash + secret, then hash again)
+    const secret = process.env.ED25519_PRIVATE_KEY || '';
+    const signatureInput = new Uint8Array([
+      ...encoder.encode(documentHash),
+      ...encoder.encode(secret)
+    ]);
+    const signature = bytesToHex(blake3(signatureInput));
 
     // Generate QR code with document info
     const qrData = JSON.stringify({

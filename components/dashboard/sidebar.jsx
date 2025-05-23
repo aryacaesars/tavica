@@ -17,7 +17,6 @@ export default function Sidebar() {
     { name: "Dashboard", icon: Home, href: "/dashboard" },
     { name: "User", icon: Users, href: "/dashboard/user" },
     { name: "E-Signature", icon: FileSignature, href: "/dashboard/sign" },
-    { name : "Verifikasi", icon: Clock, href: "/dashboard/verify" },
     // Show Create Admin for all admin (superadmin or admin)
     { name: "Create Admin", icon: Settings, href: "/dashboard/create-admin" },
   ];

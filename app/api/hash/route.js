@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createHash } from 'crypto';
+import { hashBlake3 } from '@/lib/blake3';
 
 // Handle GET requests
 export async function GET() {
@@ -32,12 +32,10 @@ export async function POST(request) {
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const uint8 = new Uint8Array(bytes);
 
-    // Generate SHA-256 hash
-    const hash = createHash('sha256');
-    hash.update(buffer);
-    const hashHex = hash.digest('hex');
+    // Generate BLAKE3 hash
+    const hashHex = hashBlake3(uint8);
 
     return NextResponse.json({ hash: hashHex });
   } catch (error) {
@@ -47,4 +45,4 @@ export async function POST(request) {
       { status: 500 }
     );
   }
-} 
+}

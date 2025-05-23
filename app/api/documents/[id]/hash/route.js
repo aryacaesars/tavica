@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createHash } from 'crypto';
+import { hashBlake3 } from '@/lib/blake3';
 
 export async function GET(request, { params }) {
   try {
@@ -26,12 +26,10 @@ export async function GET(request, { params }) {
 
     // Convert PDF to buffer
     const pdfBuffer = await pdfRes.arrayBuffer();
-    const buffer = Buffer.from(pdfBuffer);
+    const uint8 = new Uint8Array(pdfBuffer);
 
-    // Generate SHA-256 hash
-    const hash = createHash('sha256');
-    hash.update(buffer);
-    const hashHex = hash.digest('hex');
+    // Generate BLAKE3 hash (hex)
+    const hashHex = hashBlake3(uint8);
 
     return NextResponse.json({ hash: hashHex });
   } catch (error) {
@@ -41,4 +39,4 @@ export async function GET(request, { params }) {
       { status: 500 }
     );
   }
-} 
+}
