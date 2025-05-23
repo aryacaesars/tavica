@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyAdminToken } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
 import { hashBlake3 } from '@/lib/blake3';
-import { blake3 } from '@noble/hashes/blake3';
-import { bytesToHex } from '@noble/hashes/utils';
+import { sign } from '@/lib/ed25519';
 import QRCode from 'qrcode';
 import { PDFDocument } from 'pdf-lib';
 
@@ -47,13 +46,16 @@ export async function POST(request, { params }) {
     const encoder = new TextEncoder();
     const documentHash = hashBlake3(encoder.encode(document.pdfUrl));
 
-    // Create signature using BLAKE3 (concatenate hash + secret, then hash again)
-    const secret = process.env.ED25519_PRIVATE_KEY || '';
-    const signatureInput = new Uint8Array([
-      ...encoder.encode(documentHash),
-      ...encoder.encode(secret)
-    ]);
-    const signature = bytesToHex(blake3(signatureInput));
+    // Create digital signature using Ed25519
+    const privateKey = process.env.ED25519_PRIVATE_KEY;
+    if (!privateKey) {
+      return NextResponse.json(
+        { error: "ED25519_PRIVATE_KEY not set" },
+        { status: 500 }
+      );
+    }
+    // Signature Ed25519 (hasil base64)
+    const signature = await sign(documentHash, privateKey);
 
     // Generate QR code with document info
     const qrData = JSON.stringify({

@@ -186,7 +186,6 @@ export default function MyDocumentsPage() {
                   <TableRow key={doc.id}>
                     <TableCell>{new Date(doc.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>{doc.title || '-'}</TableCell>
-                    <TableCell>{doc.documentType || '-'}</TableCell>
                     <TableCell>
                       <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">Menunggu</span>
                     </TableCell>
