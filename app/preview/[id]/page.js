@@ -4,25 +4,29 @@ import { useEffect } from 'react';
 export default function PreviewPage({ params }) {
   useEffect(() => {
     const url = `/api/documents/${params.id}/embed-qr`;
+    // Buka window/tab baru SEGERA saat halaman diakses
+    const pdfWindow = window.open('', '_blank');
+    if (!pdfWindow) {
+      document.body.innerHTML = `<div style=\"color:red;text-align:center;margin-top:40px\">Popup diblokir browser. Izinkan popup untuk preview PDF.</div>`;
+      return;
+    }
     fetch(url, { method: 'GET', credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data.pdf) {
-          // Buka PDF di tab baru
-          const pdfWindow = window.open();
-          if (pdfWindow) {
-            pdfWindow.document.write(
-              `<iframe src='${data.pdf}' width='100%' height='100%' style='border:none;'></iframe>`
-            );
-          } else {
-            document.body.innerHTML = `<div style="color:red;text-align:center;margin-top:40px">Popup diblokir browser. Izinkan popup untuk preview PDF.</div>`;
-          }
+          pdfWindow.document.write(
+            `<iframe src='${data.pdf}' width='100%' height='100%' style='border:none;'></iframe>`
+          );
         } else {
-          document.body.innerHTML = `<div style=\"color:red;text-align:center;margin-top:40px\">${data.error || 'PDF tidak ditemukan'}</div>`;
+          pdfWindow.document.write(
+            `<div style=\"color:red;text-align:center;margin-top:40px\">${data.error || 'PDF tidak ditemukan'}</div>`
+          );
         }
       })
       .catch(err => {
-        document.body.innerHTML = `<div style=\"color:red;text-align:center;margin-top:40px\">${err.message || 'Gagal preview PDF'}</div>`;
+        pdfWindow.document.write(
+          `<div style=\"color:red;text-align:center;margin-top:40px\">${err.message || 'Gagal preview PDF'}</div>`
+        );
       });
   }, [params.id]);
 
