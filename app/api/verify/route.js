@@ -26,23 +26,42 @@ export async function POST(request) {
       }
     } catch (jsonError) {
       console.log('JSON parse failed:', jsonError.message);
+      console.log('Raw QR data type:', typeof qrData);
+      console.log('Raw QR data length:', qrData.length);
+      console.log('Raw QR data preview:', qrData.substring(0, 100));
+      
       // Jika gagal parse, mungkin QR data adalah docId saja
       try {
-        const qrApiResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/qr?docId=${qrData}`, {
+        const apiUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/qr?docId=${qrData}`;
+        console.log('Attempting to fetch QR data from API:', apiUrl);
+        
+        const qrApiResponse = await fetch(apiUrl, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
         
+        console.log('QR API response status:', qrApiResponse.status);
+        
         if (qrApiResponse.ok) {
           const qrApiData = await qrApiResponse.json();
+          console.log('QR API response data:', qrApiData);
           parsedQRData = qrApiData.qrData || qrApiData;
         } else {
-          throw new Error('QR API call failed');
+          const errorData = await qrApiResponse.json();
+          console.log('QR API error response:', errorData);
+          throw new Error(`QR API call failed: ${errorData.error || 'Unknown error'}`);
         }
       } catch (apiError) {
+        console.error('API error details:', apiError);
         return NextResponse.json({ 
           error: 'Invalid QR code format and failed to retrieve from API',
-          valid: false 
+          valid: false,
+          debug: {
+            jsonError: jsonError.message,
+            apiError: apiError.message,
+            rawQRData: qrData,
+            qrDataType: typeof qrData
+          }
         }, { status: 400 });
       }
     }
@@ -52,7 +71,12 @@ export async function POST(request) {
     // Extract data dengan support untuk format baru yang include previewUrl
     const { hash: qrHash, signature: qrSignature, docId, previewUrl } = parsedQRData;
 
-    console.log('Extracted values:', { qrHash: !!qrHash, qrSignature: !!qrSignature, docId: !!docId, previewUrl });
+    console.log('Extracted values:', { 
+      qrHash: qrHash ? qrHash.substring(0, 16) + '...' : null, 
+      qrSignature: qrSignature ? qrSignature.substring(0, 16) + '...' : null, 
+      docId, 
+      previewUrl 
+    });
 
     if (!qrHash || !qrSignature || !docId) {
       return NextResponse.json({ 
@@ -62,7 +86,9 @@ export async function POST(request) {
           hasHash: !!qrHash,
           hasSignature: !!qrSignature,
           hasDocId: !!docId,
-          receivedData: parsedQRData
+          receivedData: parsedQRData,
+          qrDataKeys: Object.keys(parsedQRData || {}),
+          extractedValues: { qrHash, qrSignature, docId, previewUrl }
         }
       }, { status: 400 });
     }

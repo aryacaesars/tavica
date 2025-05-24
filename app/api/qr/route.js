@@ -74,3 +74,42 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Error generating QR code: ' + error.message }, { status: 500 });
   }
 }
+
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const docId = searchParams.get('docId');
+
+    if (!docId) {
+      return NextResponse.json({ error: 'Missing docId parameter' }, { status: 400 });
+    }
+
+    console.log('QR data retrieval requested for docId:', docId);
+
+    // Find document in database
+    const document = await prisma.signedDocument.findUnique({
+      where: { id: parseInt(docId) }
+    });
+
+    if (!document) {
+      console.log('Document not found for docId:', docId);
+      return NextResponse.json({ 
+        error: 'Document not found',
+        docId: docId
+      }, { status: 404 });
+    }
+
+    // Return QR data structure
+    const qrData = {
+      hash: document.hash,
+      signature: document.signature,
+      docId: document.id,
+      previewUrl: `https://tavica.vercel.app/preview/${document.id}`
+    };
+
+    return NextResponse.json({ qrData });
+  } catch (error) {
+    console.error('Error retrieving QR data:', error);
+    return NextResponse.json({ error: 'Error retrieving QR data: ' + error.message }, { status: 500 });
+  }
+}
