@@ -18,10 +18,10 @@ export default function VerificationSection() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-          <Card className="shadow-sm border-2 border-blue-100">
+          <Card className="shadow-sm border-2 border-black-100">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <FileCheck className="h-12 w-12 text-blue-600" />
+                <FileCheck className="h-12 w-12 text-black-600" />
               </div>
               <CardTitle>Upload Dokumen</CardTitle>
               <CardDescription>
@@ -30,10 +30,10 @@ export default function VerificationSection() {
             </CardHeader>
           </Card>
           
-          <Card className="shadow-sm border-2 border-blue-100">
+          <Card className="shadow-sm border-2 border-black-100">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <Shield className="h-12 w-12 text-blue-600" />
+                <Shield className="h-12 w-12 text-black-600" />
               </div>
               <CardTitle>Proses Verifikasi</CardTitle>
               <CardDescription>
@@ -42,10 +42,10 @@ export default function VerificationSection() {
             </CardHeader>
           </Card>
           
-          <Card className="shadow-sm border-2 border-blue-100">
+          <Card className="shadow-sm border-2 border-black-100">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <CheckCircle className="h-12 w-12 text-blue-600" />
+                <CheckCircle className="h-12 w-12 text-black-600" />
               </div>
               <CardTitle>Hasil Verifikasi</CardTitle>
               <CardDescription>
@@ -62,7 +62,7 @@ export default function VerificationSection() {
             Cukup upload dokumen PDF Anda dan dapatkan hasilnya dalam hitungan detik.
           </p>
           <Link href="/verify">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+            <Button size="lg" className="bg-black-600 hover:bg-black-700">
               Verifikasi Dokumen
             </Button>
           </Link>
