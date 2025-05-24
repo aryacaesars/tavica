@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verify } from '@/lib/ed25519';
 import { prisma } from '@/lib/prisma';
-import { calculateFileHash } from '@/lib/pdf-utils';
+import { calculateFileHash, calculateOriginalPDFHash, verifyPDFIntegrity } from '@/lib/pdf-utils';
 
 export async function POST(request) {
   try {
@@ -93,27 +93,15 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // 1. Hitung hash dari file PDF yang di-upload
+    // Get file buffer
     const fileBuffer = await file.arrayBuffer();
-    const actualFileHash = await calculateFileHash(new Uint8Array(fileBuffer));
-
-    // 2. Ambil data dari database, API signed-document, dan API QR
-    const [document, apiResponse, qrApiResponse] = await Promise.all([
-      // Data dari database
-      prisma.signedDocument.findUnique({
-        where: { id: docId }
-      }),
-      // Data dari API signed-document untuk cross-reference
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/signed-document/${docId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      }).then(res => res.ok ? res.json() : null).catch(() => null),
-      // Data dari API QR untuk verifikasi QR code
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/qr?docId=${docId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      }).then(res => res.ok ? res.json() : null).catch(() => null)
-    ]);
+    
+    // **DUAL VERIFICATION**
+    
+    // 1. Get document from database
+    const document = await prisma.signedDocument.findUnique({
+      where: { id: docId }
+    });
 
     if (!document) {
       return NextResponse.json({ 
@@ -122,89 +110,48 @@ export async function POST(request) {
       }, { status: 404 });
     }
 
-    // 3. Cross-reference dengan API data (jika tersedia)
-    if (apiResponse && apiResponse.document) {
-      const apiDoc = apiResponse.document;
-      
-      // Verifikasi consistency antara database dan API
-      if (apiDoc.hash !== document.hash || apiDoc.signature !== document.signature) {
-        return NextResponse.json({ 
-          error: 'Data inconsistency detected between database and API',
-          valid: false,
-          details: 'Internal data mismatch - possible tampering'
-        }, { status: 500 });
-      }
-    }
+    // **TAMBAHAN: Debug log**
+    console.log('Document from DB:', {
+      id: document.id,
+      hash: document.hash,
+      filename: document.filename
+    });
 
-    // 4. Verifikasi QR code dengan API QR (skip jika tidak ada response)
-    if (qrApiResponse && qrApiResponse.qrData) {
-      const apiQRData = qrApiResponse.qrData;
-      
-      // Verifikasi consistency QR data dari scan vs API
-      if (apiQRData.hash !== qrHash || 
-          apiQRData.signature !== qrSignature || 
-          apiQRData.docId !== docId) {
-        return NextResponse.json({ 
-          error: 'QR code data does not match API records',
-          valid: false,
-          details: 'QR code may be tampered or invalid'
-        }, { status: 400 });
-      }
-    }
+    console.log('Comparison:', {
+      qrHash,
+      dbHash: document.hash,
+      matches: qrHash === document.hash
+    });
 
-    // 5. Triple verification:
-    const hashFromDB = document.hash;
-    const signatureFromDB = document.signature;
+    // 2. Comprehensive PDF integrity check
+    const integrityResult = await verifyPDFIntegrity(
+      fileBuffer, 
+      document.hash, 
+      parsedQRData
+    );
 
-    // Check 1: QR hash vs DB hash
-    if (qrHash !== hashFromDB) {
+    if (!integrityResult.valid) {
       return NextResponse.json({ 
-        error: 'QR code hash does not match database',
+        error: 'PDF integrity verification failed',
         valid: false,
-        details: 'QR code may be tampered or copied',
+        details: integrityResult.checks,
         debug: {
-          qrHash: qrHash,
-          databaseHash: hashFromDB,
-          hashesMatch: qrHash === hashFromDB,
-          qrLength: qrHash?.length,
-          dbLength: hashFromDB?.length
+          errorMessage: integrityResult.error,
+          documentHashFromDB: document.hash,
+          qrHashFromCode: qrHash,
+          calculatedHash: integrityResult.checks?.calculatedHash
         }
       }, { status: 400 });
     }
 
-    // Check 2: Actual file hash vs DB hash
-    if (actualFileHash !== hashFromDB) {
-      return NextResponse.json({ 
-        error: 'File hash does not match database',
-        valid: false,
-        details: 'File content has been modified or this is not the original file',
-        debug: {
-          actualFileHash: actualFileHash,
-          databaseHash: hashFromDB,
-          hashesMatch: actualFileHash === hashFromDB,
-          actualLength: actualFileHash?.length,
-          dbLength: hashFromDB?.length
-        }
-      }, { status: 400 });
-    }
-
-    // Check 3: QR signature vs DB signature
-    if (qrSignature !== signatureFromDB) {
-      return NextResponse.json({ 
-        error: 'QR signature does not match database',
-        valid: false,
-        details: 'QR code signature is invalid'
-      }, { status: 400 });
-    }
-
-    // 6. Verifikasi cryptographic signature
+    // 3. Cryptographic signature verification
     const publicKey = process.env.ED25519_PUBLIC_KEY;
     if (!publicKey) {
       return NextResponse.json({ error: 'Public key not set' }, { status: 500 });
     }
 
-    const message = Buffer.from(hashFromDB, 'hex');
-    const isSignatureValid = await verify(message, signatureFromDB, publicKey);
+    const message = Buffer.from(document.hash, 'hex');
+    const isSignatureValid = await verify(message, document.signature, publicKey);
 
     if (!isSignatureValid) {
       return NextResponse.json({ 
@@ -213,7 +160,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // 7. Update verification timestamp
+    // 4. Update verification timestamp
     await prisma.signedDocument.update({
       where: { id: docId },
       data: { verifiedAt: new Date() }
@@ -229,12 +176,11 @@ export async function POST(request) {
         previewUrl: previewUrl // Include preview URL in response
       },
       checks: {
-        qrHashMatch: true,
-        fileHashMatch: true,
-        signatureMatch: true,
-        cryptographicValid: true,
-        apiConsistency: !!apiResponse,
-        qrApiConsistency: !!qrApiResponse
+        documentIntegrity: integrityResult.valid,
+        qrDataValid: integrityResult.checks.qrData,
+        documentHashValid: integrityResult.checks.documentHash,
+        cryptographicSignature: isSignatureValid,
+        hashDetails: integrityResult.checks
       }
     });
 
