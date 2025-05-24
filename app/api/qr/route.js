@@ -19,7 +19,7 @@ export async function POST(request) {
     }
 
     // Generate direct PDF URL for QR code
-    const previewUrl = `https://tavica-git-backup-arya-caesars-projects.vercel.app/preview/${document.id}`;
+    const previewUrl = `https://tavica.vercel.app/preview/${document.id}`;
     const qr = await QRCode.toDataURL(previewUrl, { type: 'image/png' });
 
     return NextResponse.json({ qr });
