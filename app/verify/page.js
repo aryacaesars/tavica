@@ -14,31 +14,48 @@ export default function VerifyPage() {
     try {
       setLoading(true);
       setError('');
+      setResult(null);
       
       // Extract QR data from PDF
       const qrData = await extractQRFromPDF(file);
       
       if (!qrData) {
         setError('No QR code found in the document');
+        setResult({ valid: false });
         return;
+      }
+
+      // Validate QR data format
+      let parsedQRData;
+      try {
+        parsedQRData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
+      } catch (parseError) {
+        // If parsing fails, try to use as docId
+        console.log('QR data not JSON, trying as docId:', qrData);
+        parsedQRData = { docId: qrData };
       }
 
       // Create FormData
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('qrData', qrData);
+      // Send as JSON string to ensure proper format
+      formData.append('qrData', JSON.stringify(parsedQRData));
 
       // Send to verify API
       const response = await fetch('/api/verify', {
         method: 'POST',
-        body: formData, // Jangan set Content-Type header manual
+        body: formData,
       });
 
       const data = await response.json();
       
       if (!response.ok) {
         setError(data.error || 'Verification failed');
-        setResult({ valid: false });
+        setResult({ 
+          valid: false, 
+          details: data.details || 'Unknown error occurred',
+          checks: data.checks || {}
+        });
         return;
       }
 
@@ -46,11 +63,16 @@ export default function VerifyPage() {
     } catch (error) {
       console.error('Verification error:', error);
       setError('Error during verification: ' + error.message);
-      setResult({ valid: false });
+      setResult({ 
+        valid: false,
+        details: 'Client-side error occurred'
+      });
     } finally {
       setLoading(false);
     }
-  };  return (
+  };
+
+  return (
     <main className="flex flex-col items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <h1 className="text-3xl font-bold text-black mb-8 text-center">

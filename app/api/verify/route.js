@@ -16,19 +16,40 @@ export async function POST(request) {
     // Parse QR data dengan error handling
     let parsedQRData;
     try {
-      parsedQRData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
+      // Coba parse sebagai JSON jika string
+      if (typeof qrData === 'string') {
+        parsedQRData = JSON.parse(qrData);
+      } else {
+        parsedQRData = qrData;
+      }
     } catch (jsonError) {
-      return NextResponse.json({ 
-        error: 'Invalid QR code format',
-        valid: false 
-      }, { status: 400 });
+      // Jika gagal parse, mungkin QR data adalah docId saja
+      // Coba ambil dari API QR untuk mendapatkan format yang benar
+      try {
+        const qrApiResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/qr?docId=${qrData}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (qrApiResponse.ok) {
+          const qrApiData = await qrApiResponse.json();
+          parsedQRData = qrApiData.qrData || qrApiData;
+        } else {
+          throw new Error('QR API call failed');
+        }
+      } catch (apiError) {
+        return NextResponse.json({ 
+          error: 'Invalid QR code format and failed to retrieve from API',
+          valid: false 
+        }, { status: 400 });
+      }
     }
 
     const { hash: qrHash, signature: qrSignature, docId } = parsedQRData;
 
     if (!qrHash || !qrSignature || !docId) {
       return NextResponse.json({ 
-        error: 'QR code missing required data',
+        error: 'QR code missing required data (hash, signature, or docId)',
         valid: false 
       }, { status: 400 });
     }
@@ -37,14 +58,19 @@ export async function POST(request) {
     const fileBuffer = await file.arrayBuffer();
     const actualFileHash = await calculateFileHash(new Uint8Array(fileBuffer));
 
-    // 2. Ambil data dari database dan API signed-document
-    const [document, apiResponse] = await Promise.all([
+    // 2. Ambil data dari database, API signed-document, dan API QR
+    const [document, apiResponse, qrApiResponse] = await Promise.all([
       // Data dari database
       prisma.signedDocument.findUnique({
         where: { id: docId }
       }),
       // Data dari API signed-document untuk cross-reference
       fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/signed-document/${docId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      }).then(res => res.ok ? res.json() : null).catch(() => null),
+      // Data dari API QR untuk verifikasi QR code
+      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/qr?docId=${docId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       }).then(res => res.ok ? res.json() : null).catch(() => null)
@@ -71,7 +97,23 @@ export async function POST(request) {
       }
     }
 
-    // 4. Triple verification:
+    // 4. Verifikasi QR code dengan API QR
+    if (qrApiResponse && qrApiResponse.qrData) {
+      const apiQRData = qrApiResponse.qrData;
+      
+      // Verifikasi consistency QR data dari scan vs API
+      if (apiQRData.hash !== qrHash || 
+          apiQRData.signature !== qrSignature || 
+          apiQRData.docId !== docId) {
+        return NextResponse.json({ 
+          error: 'QR code data does not match API records',
+          valid: false,
+          details: 'QR code may be tampered or invalid'
+        }, { status: 400 });
+      }
+    }
+
+    // 5. Triple verification:
     const hashFromDB = document.hash;
     const signatureFromDB = document.signature;
 
@@ -102,7 +144,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // 5. Verifikasi cryptographic signature
+    // 6. Verifikasi cryptographic signature
     const publicKey = process.env.ED25519_PUBLIC_KEY;
     if (!publicKey) {
       return NextResponse.json({ error: 'Public key not set' }, { status: 500 });
@@ -118,7 +160,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // 6. Update verification timestamp
+    // 7. Update verification timestamp
     await prisma.signedDocument.update({
       where: { id: docId },
       data: { verifiedAt: new Date() }
@@ -137,7 +179,8 @@ export async function POST(request) {
         fileHashMatch: true,
         signatureMatch: true,
         cryptographicValid: true,
-        apiConsistency: !!apiResponse
+        apiConsistency: !!apiResponse,
+        qrApiConsistency: !!qrApiResponse
       }
     });
 
