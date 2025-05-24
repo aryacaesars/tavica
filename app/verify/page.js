@@ -11,36 +11,42 @@ export default function VerifyPage() {
   const [result, setResult] = useState(null);
 
   const handleFileSelect = async (file) => {
-    setLoading(true);
-    setError('');
-    setResult(null);
-
     try {
-      // Extract QR code from PDF
-      const qrData = await extractQRFromPDF(file);
-
-      // Verify signature
-      const response = await fetch('/api/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          hash: qrData.hash,
-          signature: qrData.signature
-        })
-      });
-
-      const verificationResult = await response.json();
+      setLoading(true);
+      setError('');
       
-      if (!response.ok) {
-        throw new Error(verificationResult.error || 'Verification failed');
+      // Extract QR data from PDF
+      const qrData = await extractQRFromPDF(file);
+      
+      if (!qrData) {
+        setError('No QR code found in the document');
+        return;
       }
 
-      setResult(verificationResult);
-    } catch (err) {
-      // Ensure we have a proper error message
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during verification';
-      console.error('Verification error:', errorMessage);
-      setError(errorMessage);
+      // Create FormData
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('qrData', qrData);
+
+      // Send to verify API
+      const response = await fetch('/api/verify', {
+        method: 'POST',
+        body: formData, // Jangan set Content-Type header manual
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setError(data.error || 'Verification failed');
+        setResult({ valid: false });
+        return;
+      }
+
+      setResult(data);
+    } catch (error) {
+      console.error('Verification error:', error);
+      setError('Error during verification: ' + error.message);
+      setResult({ valid: false });
     } finally {
       setLoading(false);
     }
@@ -80,4 +86,4 @@ export default function VerifyPage() {
       </div>
     </main>
   );
-} 
+}
