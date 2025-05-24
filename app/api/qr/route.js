@@ -9,19 +9,56 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Debug log
-    console.log('QR generation requested for:', { hash, docId });
+    // Debug log lebih detail
+    console.log('QR generation requested for:', { hash, docId, signature: signature.slice(0, 20) + '...' });
 
-    // Cari dokumen signedDocument berdasarkan docId
-    const document = await prisma.signedDocument.findUnique({
-      where: { id: docId }
-    });
-
-    if (!document) {
-      return NextResponse.json({ error: 'Document not found in database' }, { status: 404 });
+    // Coba beberapa cara pencarian dokumen
+    let document = null;
+    
+    // Cara 1: Cari berdasarkan docId
+    try {
+      document = await prisma.signedDocument.findUnique({
+        where: { id: docId }
+      });
+      if (document) {
+        console.log('Document found by docId:', document.id);
+      }
+    } catch (error) {
+      console.error('Error searching by docId:', error);
     }
 
-    // Gunakan data dari database, bukan dari request
+    // Cara 2: Jika tidak ditemukan, cari berdasarkan hash
+    if (!document) {
+      try {
+        document = await prisma.signedDocument.findUnique({
+          where: { hash: hash }
+        });
+        if (document) {
+          console.log('Document found by hash:', document.id);
+        }
+      } catch (error) {
+        console.error('Error searching by hash:', error);
+      }
+    }
+
+    // Cara 3: Debug - tampilkan semua dokumen untuk melihat struktur data
+    if (!document) {
+      console.log('Document not found, checking all documents...');
+      const allDocs = await prisma.signedDocument.findMany({
+        take: 5,
+        select: { id: true, hash: true, filename: true }
+      });
+      console.log('Available documents:', allDocs);
+    }
+
+    if (!document) {
+      return NextResponse.json({ 
+        error: 'Document not found in database',
+        debug: { searchedDocId: docId, searchedHash: hash }
+      }, { status: 404 });
+    }
+
+    // Gunakan data dari database
     const qrData = {
       hash: document.hash,
       signature: document.signature,
