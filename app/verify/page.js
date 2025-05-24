@@ -25,14 +25,40 @@ export default function VerifyPage() {
         return;
       }
 
-      // Validate QR data format
+      console.log('Extracted QR data:', qrData);
+
+      // Validate and normalize QR data format
       let parsedQRData;
       try {
+        // Parse QR data if it's a string
         parsedQRData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
+        console.log('Parsed QR data:', parsedQRData);
+        
+        // Validate that we have the required fields
+        const hasRequiredFields = parsedQRData.hash && parsedQRData.signature && parsedQRData.docId;
+        
+        if (!hasRequiredFields) {
+          // If missing fields, try to extract docId and fetch from API
+          if (parsedQRData.docId) {
+            console.log('QR data missing some fields, will let API handle it');
+          } else {
+            throw new Error('QR data missing required fields');
+          }
+        }
+        
       } catch (parseError) {
-        // If parsing fails, try to use as docId
-        console.log('QR data not JSON, trying as docId:', qrData);
-        parsedQRData = { docId: qrData };
+        console.log('QR data parsing failed:', parseError.message);
+        console.log('Raw QR data:', qrData);
+        
+        // Try to use raw data as docId if it looks like one
+        if (typeof qrData === 'string' && qrData.length > 10) {
+          parsedQRData = { docId: qrData };
+          console.log('Treating as docId:', parsedQRData);
+        } else {
+          setError('Invalid QR code format - unable to extract document information');
+          setResult({ valid: false });
+          return;
+        }
       }
 
       // Create FormData
@@ -41,6 +67,8 @@ export default function VerifyPage() {
       // Send as JSON string to ensure proper format
       formData.append('qrData', JSON.stringify(parsedQRData));
 
+      console.log('Sending to verify API:', JSON.stringify(parsedQRData));
+
       // Send to verify API
       const response = await fetch('/api/verify', {
         method: 'POST',
@@ -48,13 +76,15 @@ export default function VerifyPage() {
       });
 
       const data = await response.json();
+      console.log('Verify API response:', data);
       
       if (!response.ok) {
         setError(data.error || 'Verification failed');
         setResult({ 
           valid: false, 
           details: data.details || 'Unknown error occurred',
-          checks: data.checks || {}
+          checks: data.checks || {},
+          debug: data.debug || null
         });
         return;
       }

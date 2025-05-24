@@ -13,6 +13,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing file or QR data' }, { status: 400 });
     }
 
+    console.log('Raw QR data received:', qrData);
+
     // Parse QR data dengan error handling
     let parsedQRData;
     try {
@@ -23,8 +25,8 @@ export async function POST(request) {
         parsedQRData = qrData;
       }
     } catch (jsonError) {
+      console.log('JSON parse failed:', jsonError.message);
       // Jika gagal parse, mungkin QR data adalah docId saja
-      // Coba ambil dari API QR untuk mendapatkan format yang benar
       try {
         const qrApiResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/qr?docId=${qrData}`, {
           method: 'GET',
@@ -45,12 +47,23 @@ export async function POST(request) {
       }
     }
 
-    const { hash: qrHash, signature: qrSignature, docId } = parsedQRData;
+    console.log('Parsed QR data:', parsedQRData);
+
+    // Extract data dengan support untuk format baru yang include previewUrl
+    const { hash: qrHash, signature: qrSignature, docId, previewUrl } = parsedQRData;
+
+    console.log('Extracted values:', { qrHash: !!qrHash, qrSignature: !!qrSignature, docId: !!docId, previewUrl });
 
     if (!qrHash || !qrSignature || !docId) {
       return NextResponse.json({ 
         error: 'QR code missing required data (hash, signature, or docId)',
-        valid: false 
+        valid: false,
+        debug: {
+          hasHash: !!qrHash,
+          hasSignature: !!qrSignature,
+          hasDocId: !!docId,
+          receivedData: parsedQRData
+        }
       }, { status: 400 });
     }
 
@@ -97,7 +110,7 @@ export async function POST(request) {
       }
     }
 
-    // 4. Verifikasi QR code dengan API QR
+    // 4. Verifikasi QR code dengan API QR (skip jika tidak ada response)
     if (qrApiResponse && qrApiResponse.qrData) {
       const apiQRData = qrApiResponse.qrData;
       
@@ -172,7 +185,8 @@ export async function POST(request) {
         filename: document.filename,
         createdAt: document.createdAt,
         verifiedAt: new Date(),
-        integrity: 'verified'
+        integrity: 'verified',
+        previewUrl: previewUrl // Include preview URL in response
       },
       checks: {
         qrHashMatch: true,
