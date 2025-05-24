@@ -23,7 +23,7 @@ export async function POST(request) {
       hash: hash,
       signature: signature,
       docId: docId,
-      previewUrl: `https://tavica.vercel.app/preview/${document.id}`
+      previewUrl: `https://tavica.vercel.app/preview/${doc.documentid}`
     };
     
     // Encode verification data to JSON string for QR code
