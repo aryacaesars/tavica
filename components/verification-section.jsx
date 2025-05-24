@@ -62,7 +62,7 @@ export default function VerificationSection() {
             Cukup upload dokumen PDF Anda dan dapatkan hasilnya dalam hitungan detik.
           </p>
           <Link href="/verify">
-            <Button size="lg" className="bg-black-600 hover:bg-black-700">
+            <Button size="lg" className="bg-black hover:bg-black/80 text-white">
               Verifikasi Dokumen
             </Button>
           </Link>
