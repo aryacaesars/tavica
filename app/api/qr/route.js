@@ -18,16 +18,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Document not found in database' }, { status: 404 });
     }
 
-    const payload = { 
-      hash, 
-      signature, 
-      docId: document.id, // Use database ID instead of filename
-      timestamp 
-    };
-    const jsonString = JSON.stringify(payload);
-
-    // Generate QR code as data URL (PNG, base64)
-    const qr = await QRCode.toDataURL(jsonString, { type: 'image/png' });
+    // Generate direct PDF URL for QR code
+    const previewUrl = `https://tavica.vercel.app/preview/${document.id}`;
+    const qr = await QRCode.toDataURL(previewUrl, { type: 'image/png' });
 
     return NextResponse.json({ qr });
   } catch (error) {
