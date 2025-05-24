@@ -26,6 +26,7 @@ export async function GET(req, { params }) {
   // Return the document data including hash and signature
   return NextResponse.json({
     id: signedDocument.id,
+    documentId: signedDocument.documentId,
     hash: signedDocument.hash,
     signature: signedDocument.signature,
     filename: signedDocument.filename,

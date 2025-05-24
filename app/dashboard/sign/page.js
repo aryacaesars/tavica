@@ -75,13 +75,14 @@ export default function HomePage() {
       const signData = await signRes.json();
       if (!signRes.ok) throw new Error(signData.error || 'Failed to sign hash');
       const signature = signData.signature;
+      const signedDocumentId = signData.signedDocumentId;
 
       // 3. Generate QR
       const timestamp = new Date().toISOString();
       const qrRes = await fetch('/api/qr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hash, signature, docId: document.id, timestamp })
+        body: JSON.stringify({ hash, signature, docId: signedDocumentId, timestamp })
       });
       const qrData = await qrRes.json();
       if (!qrRes.ok) throw new Error(qrData.error || 'Failed to generate QR');

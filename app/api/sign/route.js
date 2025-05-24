@@ -21,7 +21,7 @@ export async function POST(request) {
 
     // Store document in database
     try {
-      const document = await prisma.signedDocument.create({
+      const signedDocument = await prisma.signedDocument.create({
         data: {
           hash,
           signature,
@@ -30,10 +30,15 @@ export async function POST(request) {
           documentId
         }
       });
+      
+      return NextResponse.json({ 
+        signature,
+        signedDocumentId: signedDocument.id 
+      });
     } catch (error) {
       if (error.code === 'P2002') {
         // Document already exists, update it
-        await prisma.signedDocument.update({
+        const signedDocument = await prisma.signedDocument.update({
           where: { hash },
           data: {
             signature,
@@ -42,12 +47,15 @@ export async function POST(request) {
             documentId
           }
         });
+        
+        return NextResponse.json({ 
+          signature,
+          signedDocumentId: signedDocument.id 
+        });
       } else {
         throw error;
       }
     }
-
-    return NextResponse.json({ signature });
   } catch (error) {
     console.error('Error signing hash:', error);
     return NextResponse.json({ error: 'Error signing hash: ' + error.message }, { status: 500 });

@@ -86,11 +86,11 @@ export default function MyDocumentsPage() {
     }
   };
 
-  const downloadPDF = async (documentId, filename, hash, signature) => {
-    setDownloadingId(documentId);
+  const downloadPDF = async (signedDocumentId, filename, hash, signature) => {
+    setDownloadingId(signedDocumentId);
     try {
       // Generate QR code payload
-      const payload = { hash, signature, docId: documentId, timestamp: new Date().toISOString() };
+      const payload = { hash, signature, docId: signedDocumentId, timestamp: new Date().toISOString() };
       const qrRes = await fetch('/api/qr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,8 +99,16 @@ export default function MyDocumentsPage() {
       const qrData = await qrRes.json();
       if (!qrRes.ok) throw new Error(qrData.error || 'Failed to generate QR');
 
+      // Get the signed document to find the original document ID for embed-qr API
+      const signedDocRes = await fetch(`/api/signed-documents/${signedDocumentId}/download`, {
+        credentials: 'include'
+      });
+      if (!signedDocRes.ok) throw new Error('Failed to get signed document info');
+      const signedDocData = await signedDocRes.json();
+      const originalDocumentId = signedDocData.documentId || signedDocumentId;
+
       // Request PDF with embedded QR
-      const response = await fetch(`/api/documents/${documentId}/embed-qr`, {
+      const response = await fetch(`/api/documents/${originalDocumentId}/embed-qr`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -248,8 +256,8 @@ export default function MyDocumentsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => downloadPDF(doc.documentId, doc.filename || `signed-document-${doc.documentId}.pdf`, doc.hash, doc.signature)}
-                          disabled={downloadingId === doc.documentId}
+                          onClick={() => downloadPDF(doc.id, doc.filename || `signed-document-${doc.id}.pdf`, doc.hash, doc.signature)}
+                          disabled={downloadingId === doc.id}
                         >
                           {downloadingId === doc.documentId ? (
                             <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Downloading...</span>

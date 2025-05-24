@@ -161,7 +161,14 @@ export async function POST(request) {
       return NextResponse.json({ 
         error: 'QR code hash does not match database',
         valid: false,
-        details: 'QR code may be tampered or copied'
+        details: 'QR code may be tampered or copied',
+        debug: {
+          qrHash: qrHash,
+          databaseHash: hashFromDB,
+          hashesMatch: qrHash === hashFromDB,
+          qrLength: qrHash?.length,
+          dbLength: hashFromDB?.length
+        }
       }, { status: 400 });
     }
 
@@ -170,7 +177,14 @@ export async function POST(request) {
       return NextResponse.json({ 
         error: 'File hash does not match database',
         valid: false,
-        details: 'File content has been modified or this is not the original file'
+        details: 'File content has been modified or this is not the original file',
+        debug: {
+          actualFileHash: actualFileHash,
+          databaseHash: hashFromDB,
+          hashesMatch: actualFileHash === hashFromDB,
+          actualLength: actualFileHash?.length,
+          dbLength: hashFromDB?.length
+        }
       }, { status: 400 });
     }
 

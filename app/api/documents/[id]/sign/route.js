@@ -41,10 +41,16 @@ export async function POST(request, { params }) {
       );
     }
 
-
-    // Generate document hash using BLAKE3
-    const encoder = new TextEncoder();
-    const documentHash = hashBlake3(encoder.encode(document.pdfUrl));
+    // Fetch PDF from URL and generate proper hash using BLAKE3
+    const pdfRes = await fetch(document.pdfUrl);
+    if (!pdfRes.ok) {
+      throw new Error('Failed to fetch PDF');
+    }
+    
+    // Convert PDF to buffer and hash the content (not the URL)
+    const pdfBuffer = await pdfRes.arrayBuffer();
+    const uint8 = new Uint8Array(pdfBuffer);
+    const documentHash = hashBlake3(uint8);
 
     // Create digital signature using Ed25519
     const privateKey = process.env.ED25519_PRIVATE_KEY;
