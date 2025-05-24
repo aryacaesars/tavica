@@ -11,7 +11,7 @@ export async function POST(request) {
 
     // Get document from database to ensure it exists
     const document = await prisma.signedDocument.findUnique({
-      where: { hash }
+      where: { id: docId }  // Gunakan docId yang dikirim, bukan hash
     });
 
     if (!document) {
@@ -23,7 +23,7 @@ export async function POST(request) {
       hash: hash,
       signature: signature,
       docId: docId,
-      previewUrl: `https://tavica.vercel.app/preview/${doc.documentid}`
+      previewUrl: `https://tavica.vercel.app/preview/${docId}`
     };
     
     // Encode verification data to JSON string for QR code
