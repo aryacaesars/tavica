@@ -124,7 +124,7 @@ export default function MyDocumentsPage() {
       // Create download link
       const link = document.createElement('a');
       link.href = data.pdf; // base64 PDF
-      link.download = data.filename || filename || `signed-document-${documentId}.pdf`;
+      link.download = data.filename || filename || `signed-document-${signedDocumentId}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -259,7 +259,7 @@ export default function MyDocumentsPage() {
                           onClick={() => downloadPDF(doc.id, doc.filename || `signed-document-${doc.id}.pdf`, doc.hash, doc.signature)}
                           disabled={downloadingId === doc.id}
                         >
-                          {downloadingId === doc.documentId ? (
+                          {downloadingId === doc.id ? (
                             <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>Downloading...</span>
                           ) : 'Download PDF'}
                         </Button>
