@@ -18,13 +18,20 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Document not found in database' }, { status: 404 });
     }
 
-    // Generate direct PDF URL for QR code
-    const previewUrl = `https://tavica.vercel.app/preview/${document.id}`;
-    const qr = await QRCode.toDataURL(previewUrl, { type: 'image/png' });
+    // Generate QR code with verification data and preview URL
+    const qrData = {
+      hash: hash,
+      signature: signature,
+      docId: docId,
+      previewUrl: `https://tavica.vercel.app/preview/${document.id}`
+    };
+    
+    // Encode verification data to JSON string for QR code
+    const qr = await QRCode.toDataURL(JSON.stringify(qrData), { type: 'image/png' });
 
     return NextResponse.json({ qr });
   } catch (error) {
     console.error('Error generating QR code:', error);
     return NextResponse.json({ error: 'Error generating QR code: ' + error.message }, { status: 500 });
   }
-} 
+}
