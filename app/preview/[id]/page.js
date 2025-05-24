@@ -1,13 +1,13 @@
 'use client';
-import { useEffect } from 'react';
+
 
 export default function PreviewPage({ params }) {
-  useEffect(() => {
+
+  const handlePreview = () => {
     const url = `/api/documents/${params.id}/embed-qr`;
-    // Buka window/tab baru SEGERA saat halaman diakses
     const pdfWindow = window.open('', '_blank');
     if (!pdfWindow) {
-      document.body.innerHTML = `<div style=\"color:red;text-align:center;margin-top:40px\">Popup diblokir browser. Izinkan popup untuk preview PDF.</div>`;
+      alert('Popup diblokir browser. Izinkan popup untuk preview PDF.');
       return;
     }
     fetch(url, { method: 'GET', credentials: 'include' })
@@ -28,11 +28,21 @@ export default function PreviewPage({ params }) {
           `<div style=\"color:red;text-align:center;margin-top:40px\">${err.message || 'Gagal preview PDF'}</div>`
         );
       });
-  }, [params.id]);
+  };
 
   return (
-    <div style={{ color: '#333', textAlign: 'center', marginTop: 40 }}>
-      Membuka preview PDF...
+    <div style={{ color: '#333', textAlign: 'center', marginTop: 80 }}>
+      <button
+        style={{
+          background: '#2563eb', color: 'white', border: 'none', borderRadius: 8, padding: '16px 32px', fontSize: 20, cursor: 'pointer', boxShadow: '0 2px 8px #0001', marginBottom: 24
+        }}
+        onClick={handlePreview}
+      >
+        Buka PDF di Tab Baru
+      </button>
+      <div style={{marginTop: 32, color: '#888', fontSize: 16}}>
+        Jika popup diblokir, izinkan popup untuk domain ini lalu klik tombol lagi.
+      </div>
     </div>
   );
 }
